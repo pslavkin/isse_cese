@@ -1,0 +1,7 @@
+/**
+ * @mainpage ASCII Morse Embedded 22
+ *
+ * @startuml class
+ * !include ../class.puml
+ * @enduml
+ */

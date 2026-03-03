@@ -1,0 +1,154 @@
+' start diagram, name is optional/decorative
+' hide the tiny UML icons next to attributes (cleaner look)
+skinparam classAttributeIconSize 0
+
+' --- Hardware Abstraction ---
+
+class Button {
+  ' private: GPIO pin number
+  - pin : uint8_t
+  ' private: current pressed/released state
+  - state : bool
+  ' private: timestamp of last press (for duration calc)
+  - pressTime : uint32_t
+  --
+  ' public: configure GPIO pin
+  + init() : void
+  ' public: returns current button state
+  + isPressed() : bool
+  ' public: how long button has been held (ms)
+  + getDuration() : uint32_t
+}
+
+class LED {
+  ' private: GPIO pin number
+  - pin : uint8_t
+  --
+  ' public: configure GPIO pin as output
+  + init() : void
+  ' public: set pin HIGH
+  + on() : void
+  ' public: set pin LOW
+  + off() : void
+  ' public: on for N ms then off
+  + blink(duration: uint32_t) : void
+}
+
+' --- Morse Core ---
+
+class MorseTable {
+  ' private: lookup table, 36 chars (A-Z 0-9), max 8 symbols each
+  - table : char[36][8]
+  --
+  ' returns ".-" style string for a char
+  + asciiToMorse(c: char) : const char*
+  ' reverse lookup, returns the ASCII char
+  + morseToAscii(code: const char*) : char
+}
+
+' --- Encoder: Button -> Morse -> ASCII ---
+
+class MorseEncoder {
+  ' private: pointer to the hardware button
+  - button : Button*
+  ' private: pointer to lookup table
+  - table : MorseTable*
+  ' private: accumulates dots/dashes for current symbol
+  - buffer : char[8]
+  ' private: current position in buffer
+  - bufIdx : uint8_t
+  --
+  ' public: call each loop iteration to poll button
+  + update() : void
+  ' public: returns decoded ASCII char when ready
+  + getSymbol() : char
+  ' private: returns dot or dash based on press duration
+  - classifyPress() : char
+  ' private: clears buffer after symbol is decoded
+  - resetBuffer() : void
+}
+
+' annotation floating to the right of the class box
+note right of MorseEncoder
+  Short press = dot
+  Long press  = dash
+  Timeout     = decode symbol
+end note
+
+' --- Decoder: ASCII -> Morse -> LED ---
+
+class MorseDecoder {
+  ' private: pointer to the hardware LED
+  - led : LED*
+  ' private: pointer to lookup table
+  - table : MorseTable*
+  ' private: morse code string being played out
+  - input : const char*
+  ' private: current position in input string
+  - pos : uint8_t
+  --
+  ' public: accepts ASCII char, looks up morse, starts playback
+  + decode(c: char) : void
+  ' public: call each loop to advance LED playback non-blocking
+  + update() : void
+  ' private: short LED blink
+  - playDot() : void
+  ' private: long LED blink
+  - playDash() : void
+  ' private: LED off pause between words
+  - playWordGap() : void
+}
+
+' annotation floating to the right of the class box
+note right of MorseDecoder
+  dot  = short LED blink
+  dash = long  LED blink
+  gap  = LED off pause
+end note
+
+' --- Top-level App ---
+
+class App {
+  ' private: owned by value (composition, not pointer)
+  - encoder : MorseEncoder
+  ' private: owned by value (composition, not pointer)
+  - decoder : MorseDecoder
+  --
+  ' public: initializes all hardware and subsystems
+  + init() : void
+  ' public: the main super-loop, calls update() forever
+  + run() : void
+}
+
+' --- Timing utility ---
+
+class Timer {
+  --
+  ' static: no instance needed, wraps HAL_GetTick()
+  + {static} millis() : uint32_t
+  ' static: blocking delay wrapper
+  + {static} delay(ms: uint32_t) : void
+}
+
+' --- Relationships ---
+
+' filled diamond = composition: App owns Encoder (same lifetime)
+App *-- MorseEncoder
+' filled diamond = composition: App owns Decoder (same lifetime)
+App *-- MorseDecoder
+
+' solid arrow = association: Encoder holds a pointer to Button
+MorseEncoder --> Button
+' solid arrow = association: Encoder holds a pointer to Table
+MorseEncoder --> MorseTable
+' solid arrow = association: Decoder holds a pointer to LED
+MorseDecoder --> LED
+' solid arrow = association: Decoder holds a pointer to Table
+MorseDecoder --> MorseTable
+
+' dashed arrow = dependency: uses Timer but doesn't own it
+MorseEncoder ..> Timer : uses
+' dashed arrow = dependency: uses Timer but doesn't own it
+MorseDecoder ..> Timer : uses
+
+@enduml
