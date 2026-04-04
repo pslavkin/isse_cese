@@ -1,0 +1,7 @@
+services:
+  isse:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      network: host
+    image: pslavkin/isse:1.0

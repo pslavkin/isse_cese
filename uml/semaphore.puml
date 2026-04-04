@@ -1,0 +1,553 @@
+' ╔══════════════════════════════════════════════════════════════════════════════╗
+' ║          DIAGRAMA UML DE CLASES — ASCII <-> Morse Code Converter           ║
+' ║                  Archivo didáctico: evolución paso a paso                   ║
+' ╠══════════════════════════════════════════════════════════════════════════════╣
+' ║  INSTRUCCIONES PARA EL ALUMNO:                                              ║
+' ║  Este archivo muestra cómo se construye un diagrama UML de clases           ║
+' ║  de manera incremental, desde lo más simple hasta el diagrama completo.     ║
+' ║                                                                              ║
+' ║  Cada PASO agrega elementos nuevos. Para ver cada etapa:                    ║
+' ║    1. Descomentá el bloque del PASO que querés ver                          ║
+' ║    2. Mantené comentados todos los pasos anteriores                         ║
+' ║    3. Renderizá con PlantUML (VSCode plugin, online editor, etc.)           ║
+' ║                                                                              ║
+' ║  Atajo: Ctrl+Shift+P → "PlantUML: Preview Current Diagram"                 ║
+' ╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' PASO 1 — Una sola clase vacía
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Objetivo: entender la sintaxis mínima de PlantUML.
+' Una clase se declara con la palabra clave "class" seguida del nombre.
+' Los bloques @startuml y @enduml son OBLIGATORIOS: delimitan el diagrama.
+
+@startuml morse_paso1
+
+' "class" declara una clase. El nombre va en CamelCase por convención.
+class App
+
+@enduml
+
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' PASO 2 — Varias clases sin relaciones (el "inventario" del sistema)
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Objetivo: identificar todas las clases del sistema antes de relacionarlas.
+' Primero listamos, luego conectamos. Esto evita confusión al modelar.
+
+' @startuml semaphore2
+' 
+' ' Clase principal: orquesta todo el sistema
+' class App
+' ' Hardware: simula el botón físico (tecla SPACE)
+' class Button
+' ' Hardware: simula los LEDS Rojo amarillo y verde (salida por stdout)
+' class Leds
+' ' Utilidad: provee tiempo en ms (POSIX / HAL)
+' class Timer
+' 
+' @enduml
+' 
+' 
+' ' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' ' PASO 3 — Agregar atributos a las clases
+' ' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' ' Objetivo: mostrar el estado interno (datos) de cada clase.
+' '
+' ' Sintaxis de visibilidad (modificadores de acceso):
+' '   -  private   → solo la propia clase puede accederlo
+' '   #  protected → la clase y sus subclases
+' '   +  public    → cualquiera puede accederlo
+' '   ~  package   → acceso a nivel de paquete (Java)
+' '
+' ' Sintaxis de atributo:  visibilidad nombre : Tipo
+' ' Ejemplo:               -           pin_   : uint8_t
+' 
+' @startuml semaphore3
+' 
+' class Button {
+'     ' --- Atributos privados (prefijo "-") ---
+'     ' Número de pin GPIO (no se usa en POSIX)
+'     - pin_       : uint8_t
+'     ' Estado actual del botón (true = presionado)
+'     - state_     : bool
+' }
+' 
+' class Leds {
+'     ' Número de pin GPIO del LED Rojo
+'     - redPin_    : uint8_t
+'     - yellowPin_ : uint8_t
+'     - greenPin_  : uint8_t
+' }
+' 
+' class App {
+'     ' Atributos por valor (composición fuerte): App "posee" estos objetos
+'     ' Botón físico
+'     - button_  : Button
+'     ' LED físico
+'     - leds_     : Leds
+' }
+' 
+' class Timer {
+'     ' Timer no tiene atributos de instancia: todos sus métodos son estáticos
+' }
+' 
+' @enduml
+' 
+' 
+' ' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' ' PASO 4 — Agregar métodos a las clases
+' ' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' ' Objetivo: mostrar el comportamiento (interfaz pública + helpers privados).
+' '
+' ' Sintaxis de método:  visibilidad nombre(parámetros) : TipoRetorno
+' ' Ejemplo:             +           isPressed(       ) : bool
+' '
+' ' Separador "==" en PlantUML: línea horizontal dentro de la caja de clase
+' ' que separa visualmente atributos de métodos (convención UML).
+' 
+' @startuml semaphore4
+' 
+' class Timer {
+'     ' {static} indica que el método pertenece a la clase, no a instancias
+'     ' Retorna ms desde inicio del programa
+'     + {static} millis() : uint32_t
+'     ' Bloquea la ejecución por ms milisegundos
+'     + {static} delay(ms : uint32_t)
+' }
+' 
+' class Button {
+'     == Atributos ==
+'     - pin_       : uint8_t
+'     - state_     : bool
+'     - pressTime_ : uint32_t
+'     == Métodos ==
+'     ' Constructor: recibe el número de pin
+'     + Button(pin : uint8_t)
+'     ' Inicializa el hardware del botón
+'     + init()
+'     ' true si el botón está presionado ahora mismo
+'     + isPressed() : bool
+'     ' ms transcurridos desde el último press
+'     + getDuration() : uint32_t
+' }
+' 
+' class Leds {
+'     ' --- Constantes públicas (modificadores de clase) ---
+'     ' tiempo de permanencia del rojo
+'     + {static} RED_TIME    : uint32_t
+'     ' tiempo de permanencia del ajarillo
+'     + {static} YELLOW_TIME : uint32_t
+'     ' tiempo de permanencia del verde
+'     + {static} GREEN_TIME  : uint32_t
+'     ' tiempo de blinky del amarillo
+'     + {static} BLINKY_TIME : uint32_t
+'     == Atributos ==
+'     ' Número de pin GPIO del LED Rojo
+'     - redPin_    : uint8_t
+'     - yellowPin_ : uint8_t
+'     - greenPin_  : uint8_t
+'     == Métodos ==
+'     ' Constructor
+'     + Led(redPin : uint8_t, yellowPin : uint8_t, greenPin : uint8_t)
+'     ' Inicializa el GPIO del LED
+'     + init()
+'     ' Enciende el Led
+'     + on(led : char) ' 'R', 'Y' o 'G'
+'     ' Apaga el Led
+'     + off(led : char) ' 'R', 'Y' o 'G'
+' }
+' 
+' class MorseTable {
+'     == Atributos ==
+'     - {static} TABLE : const char*[36]
+'     == Métodos ==
+'     ' Constructor (tabla ya es estática)
+'     + MorseTable()
+'     + asciiToMorse(c : char) : const char*   ' 'A' → ".-"   (nullptr si no existe)
+'     + morseToAscii(code : const char*) : char' ".-" → 'A'   ('?' si no existe)
+' }
+' 
+' class MorseEncoder {
+'     == Atributos ==
+'     - button_      : Button*
+'     - table_       : MorseTable*
+'     - buffer_      : char[8]
+'     - bufIdx_      : uint8_t
+'     - lastPressed_ : bool
+'     - releaseTime_ : uint32_t
+'     == Métodos Públicos ==
+'     + MorseEncoder(button : Button*, table : MorseTable*)
+'     ' Debe llamarse cada tick del loop principal (~10ms)
+'     + update()
+'     + getSymbol() : char' Retorna el ASCII decodificado, o \0 si no listo
+'     == Métodos Privados ==
+'     - classifyPress(duration : uint32_t) : char ' '.' o '-' según duración
+'     ' Limpia buffer_ y bufIdx_
+'     - resetBuffer()
+' }
+' 
+' class MorseDecoder {
+'     ' 200ms  — duración de un punto
+'     + {static} DOT_MS  : uint32_t
+'     ' 600ms  — duración de una raya
+'     + {static} DASH_MS : uint32_t
+'     ' 200ms  — pausa entre símbolos
+'     + {static} GAP_MS  : uint32_t
+'     == Atributos ==
+'     - led_      : LED*
+'     - table_    : MorseTable*
+'     - input_    : char[8]
+'     - pos_      : uint8_t
+'     - nextTime_ : uint32_t
+'     - ledOn_    : bool
+'     == Métodos Públicos ==
+'     + MorseDecoder(led : LED*, table : MorseTable*)
+'     ' Carga un carácter ASCII e inicia la reproducción
+'     + decode(c : char)
+'     ' Avanza la secuencia de blinks (no bloqueante)
+'     + update()
+'     == Métodos Privados ==
+'     ' Blink corto (DOT_MS ms)
+'     - playDot()
+'     ' Blink largo (DASH_MS ms)
+'     - playDash()
+'     ' Apaga LED y espera GAP_MS ms
+'     - playWordGap()
+' }
+' 
+' class App {
+'     == Atributos ==
+'     - button_  : Button
+'     - led_     : LED
+'     - table_   : MorseTable
+'     - encoder_ : MorseEncoder
+'     - decoder_ : MorseDecoder
+'     == Métodos ==
+'     ' Constructor: crea e interconecta todos los subsistemas
+'     + App()
+'     ' Inicializa hardware e imprime instrucciones
+'     + init()
+'     ' Super-loop infinito (nunca retorna)
+'     + run()
+' }
+' 
+' @enduml
+' 
+' 
+' ' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' ' PASO 5 — Agregar relaciones de COMPOSICIÓN y ASOCIACIÓN
+' ' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' ' Objetivo: mostrar cómo se conectan las clases entre sí.
+' '
+' ' TIPOS DE RELACIÓN (de más fuerte a más débil):
+' '
+' '   "◆──"  Composición   : el objeto hijo NO puede existir sin el padre.
+' '                          Se notará: App *-- Button (App contiene Button por valor)
+' '                          Flecha:  *--  (rombo relleno en el lado del "todo")
+' '
+' '   "◇──"  Agregación    : el hijo puede existir independientemente.
+' '                          Flecha:  o--
+' '
+' '   "──>"  Asociación    : un objeto usa/conoce a otro (puntero/referencia).
+' '                          Encoder conoce Button (lo tiene como puntero).
+' '                          Flecha:  -->
+' '
+' '   "──|>" Herencia      : relación "es un". No usada aquí.
+' '                          Flecha:  --|>
+' '
+' ' MULTIPLICIDAD (se escribe entre comillas en cada extremo):
+' '   "1"    exactamente uno
+' '   "0..1" cero o uno
+' '   "1..*" uno o más
+' '   "*"    cero o más
+' 
+' @startuml morse_paso5
+' 
+' class App
+' class Button
+' class Leds
+' class Timer
+' 
+' ' ── COMPOSICIÓN: App contiene por valor (rombo relleno ◆ en App) ──────────
+' ' Sintaxis: Padre *-- Hijo  (el "*" va del lado del TODO, del contenedor)
+' ' App tiene un Button por valor (button_)
+' App *-- "1" Button
+' ' App tiene un LED por valor (led_)
+' App *-- "1" LED
+' ' App tiene una MorseTable por valor (table_)
+' App *-- "1" MorseTable
+' ' App tiene un MorseEncoder por valor (encoder_)
+' App *-- "1" MorseEncoder
+' ' App tiene un MorseDecoder por valor (decoder_)
+' App *-- "1" MorseDecoder
+' 
+' ' ── ASOCIACIÓN: punteros internos (flecha simple -->) ─────────────────────
+' ' MorseEncoder guarda punteros a Button y MorseTable (recibidos en constructor)
+' ' encoder_ llama a button_->isPressed()
+' MorseEncoder --> "1" Button     : usa >
+' ' encoder_ llama a table_->morseToAscii()
+' MorseEncoder --> "1" MorseTable : consulta >
+' 
+' ' MorseDecoder guarda punteros a LED y MorseTable
+' ' decoder_ llama a led_->blink()
+' MorseDecoder --> "1" LED        : controla >
+' ' decoder_ llama a table_->asciiToMorse()
+' MorseDecoder --> "1" MorseTable : consulta >
+' 
+' ' Timer es usado por Button y por MorseDecoder (dependencia de uso, no de estado)
+' ' Se representa con línea punteada (dependencia)
+' ' Button::isPressed() llama Timer::millis()
+' Button       ..> Timer : usa >
+' ' getSymbol() compara Timer::millis()
+' MorseEncoder ..> Timer : usa >
+' ' update() compara Timer::millis()
+' MorseDecoder ..> Timer : usa >
+' 
+' @enduml
+' 
+' 
+' ' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' ' PASO 6 — Agregar notas explicativas (notes) al diagrama
+' ' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' ' Objetivo: aprender a usar "note" para documentar decisiones de diseño
+' ' directamente en el diagrama, sin alterar las clases.
+' '
+' ' Tipos de nota:
+' '   note "texto" as N1          → nota flotante (se puede posicionar)
+' '   note right of ClaseX : texto → nota anclada a una clase
+' 
+' @startuml semaphore6
+' 
+' class App
+' class Button
+' class Leds
+' class Timer
+' 
+' App *-- "1" Button
+' App *-- "1" LED
+' App *-- "1" MorseTable
+' App *-- "1" MorseEncoder
+' App *-- "1" MorseDecoder
+' MorseEncoder --> "1" Button
+' MorseEncoder --> "1" MorseTable
+' MorseDecoder --> "1" LED
+' MorseDecoder --> "1" MorseTable
+' Button       ..> Timer
+' MorseEncoder ..> Timer
+' MorseDecoder ..> Timer
+' 
+' ' "note right of" ancla la nota a la derecha de la clase indicada
+' note right of Timer
+'   Todos los métodos son **static**.
+'   En hardware real: reemplazar con
+'   HAL_GetTick() / HAL_Delay()
+' end note
+' 
+' ' "note bottom of" ancla la nota abajo de la clase
+' note bottom of MorseTable
+'   Índices 0-25 → letras A-Z
+'   Índices 26-35 → dígitos 0-9
+'   Total: 36 entradas
+' end note
+' 
+' ' Nota flotante con alias, luego conectada con ".."
+' note "Super-loop:\n1. encoder.update()\n2. encoder.getSymbol()\n3. decoder.decode()\n4. decoder.update()" as LoopNote
+' App .. LoopNote
+' 
+' @enduml
+' 
+' 
+' ' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' ' PASO 7 — DIAGRAMA COMPLETO con skin, colores y todo el detalle
+' ' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' ' Objetivo: diagrama final, listo para documentación o presentación.
+' '
+' ' Novedades de este paso:
+' '   skinparam         → configuración global de apariencia
+' '   skinparam class   → apariencia específica de clases
+' '   package           → agrupa clases en namespaces / módulos lógicos
+' '   <<stereotype>>    → etiqueta que describe el rol de la clase
+' '   hide empty members → oculta la sección de miembros si está vacía
+' 
+' @startuml semaphore7
+' 
+' ' ── Configuración visual global ───────────────────────────────────────────
+' ' Permite usar colores
+' skinparam monochrome false
+' ' Sin sombra (más limpio)
+' skinparam shadowing false
+' ' Fuente legible
+' skinparam defaultFontName Arial
+' ' Tamaño base
+' skinparam defaultFontSize 12
+' ' Sin íconos de candado junto a visibilidad
+' skinparam classAttributeIconSize 0
+' 
+' ' skinparam class afecta a TODAS las clases del diagrama
+' skinparam class {
+'     ' Azul claro → clases de hardware
+'     BackgroundColor<<hardware>>   #DDEEFF
+'     ' Verde claro → clases de lógica
+'     BackgroundColor<<logic>>      #DDFFDD
+'     ' Naranja claro → clases de datos
+'     BackgroundColor<<data>>       #FFEECC
+'     ' Gris claro → utilidades
+'     BackgroundColor<<utility>>    #EEEEEE
+'     ' Rojo claro → aplicación principal
+'     BackgroundColor<<app>>        #FFD7D7
+'     BorderColor                   #444444
+'     ArrowColor                    #333333
+'     FontColor                     #111111
+' }
+' 
+' ' ── Paquete: Hardware (HAL — Hardware Abstraction Layer) ──────────────────
+' ' "package" agrupa clases relacionadas visualmente en el diagrama
+' package "HAL — Hardware" #F0F4FF {
+' 
+'     ' <<hardware>> es un "estereotipo": etiqueta entre << >> que describe el rol
+'     class Button <<hardware>> {
+'         + {static} DOT_DASH_THRESHOLD_MS : uint32_t = 300
+'         + {static} SYMBOL_TIMEOUT_MS     : uint32_t = 1000
+'         + {static} WORD_TIMEOUT_MS       : uint32_t = 2000
+'         == Atributos ==
+'         - pin_       : uint8_t
+'         - state_     : bool
+'         - pressTime_ : uint32_t
+'         == Métodos ==
+'         + Button(pin : uint8_t)
+'         + init()
+'         + isPressed() : bool
+'         + getDuration() : uint32_t
+'     }
+' 
+'     class Leds <<hardware>> {
+'         == Atributos ==
+'         - pin_ : uint8_t
+'         == Métodos ==
+'         + LED(pin : uint8_t)
+'         + init()
+'         + on()
+'         + off()
+'         + blink(duration : uint32_t)
+'     }
+' 
+'     class Timer <<utility>> {
+'         ' hide members vacíos no aplica acá porque sí tiene métodos
+'         + {static} millis() : uint32_t
+'         + {static} delay(ms : uint32_t)
+'     }
+' }
+' 
+' ' ── Paquete: Datos ────────────────────────────────────────────────────────
+' package "Datos" #FFFBF0 {
+'     class MorseTable <<data>> {
+'         == Atributos ==
+'         - {static} TABLE : const char*[36]
+'         == Métodos ==
+'         + MorseTable()
+'         + asciiToMorse(c : char) : const char*
+'         + morseToAscii(code : const char*) : char
+'     }
+' }
+' 
+' ' ── Paquete: Lógica de aplicación ────────────────────────────────────────
+' package "Lógica Morse" #F0FFF0 {
+' 
+'     class MorseEncoder <<logic>> {
+'         == Atributos ==
+'         - button_      : Button*
+'         - table_       : MorseTable*
+'         - buffer_      : char[8]
+'         - bufIdx_      : uint8_t
+'         - lastPressed_ : bool
+'         - releaseTime_ : uint32_t
+'         == Métodos Públicos ==
+'         + MorseEncoder(button : Button*, table : MorseTable*)
+'         + update()
+'         + getSymbol() : char
+'         == Métodos Privados ==
+'         - classifyPress(duration : uint32_t) : char
+'         - resetBuffer()
+'     }
+' 
+'     class MorseDecoder <<logic>> {
+'         + {static} DOT_MS  : uint32_t = 200
+'         + {static} DASH_MS : uint32_t = 600
+'         + {static} GAP_MS  : uint32_t = 200
+'         == Atributos ==
+'         - led_      : LED*
+'         - table_    : MorseTable*
+'         - input_    : char[8]
+'         - pos_      : uint8_t
+'         - nextTime_ : uint32_t
+'         - ledOn_    : bool
+'         == Métodos Públicos ==
+'         + MorseDecoder(led : LED*, table : MorseTable*)
+'         + decode(c : char)
+'         + update()
+'         == Métodos Privados ==
+'         - playDot()
+'         - playDash()
+'         - playWordGap()
+'     }
+' }
+' 
+' ' ── Clase principal ───────────────────────────────────────────────────────
+' class App <<app>> {
+'     == Atributos (composición por valor) ==
+'     - button_  : Button
+'     - led_     : LED
+'     - table_   : MorseTable
+'     - encoder_ : MorseEncoder
+'     - decoder_ : MorseDecoder
+'     == Métodos ==
+'     + App()
+'     + init()
+'     + run()
+' }
+' 
+' ' ── Relaciones ────────────────────────────────────────────────────────────
+' 
+' ' COMPOSICIÓN (rombo relleno ◆): App "posee" sus miembros por valor
+' App *-down- "1" Button       : button_ >
+' App *-down- "1" LED          : led_ >
+' App *-down- "1" MorseTable   : table_ >
+' App *-down- "1" MorseEncoder : encoder_ >
+' App *-down- "1" MorseDecoder : decoder_ >
+' 
+' ' ASOCIACIÓN (flecha simple): relación por puntero, pasado en constructor
+' MorseEncoder -right-> "1" Button     : usa >
+' MorseEncoder -right-> "1" MorseTable : consulta >
+' MorseDecoder -left->  "1" LED        : controla >
+' MorseDecoder -right-> "1" MorseTable : consulta >
+' 
+' ' DEPENDENCIA (línea punteada): uso temporal, sin estado almacenado
+' Button       ..> Timer : <<usa>>
+' MorseEncoder ..> Timer : <<usa>>
+' MorseDecoder ..> Timer : <<usa>>
+' 
+' ' ── Notas ─────────────────────────────────────────────────────────────────
+' note right of Timer
+'   Todos los métodos son **static**.
+'   Sin instancia necesaria.
+'   Reemplazar con HAL_GetTick()
+'   en sistemas embebidos reales.
+' end note
+' 
+' note bottom of MorseTable
+'   Tabla de búsqueda O(1) para ASCII→Morse.
+'   Búsqueda reversa O(n) para Morse→ASCII.
+'   36 entradas: A-Z (0-25) + 0-9 (26-35)
+' end note
+' 
+' note right of App
+'   **Super-loop (10ms/tick):**
+'   1. encoder_.update()
+'   2. sym = encoder_.getSymbol()
+'   3. decoder_.decode(sym)
+'   4. decoder_.update()
+' end note
+' 
+' @enduml
