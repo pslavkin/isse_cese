@@ -41,6 +41,7 @@ class GreenLed  : public Led {};
 // Button
 // ----------------------------------------------------------
 class Button {
+private:
     uint8_t pin_;        // pin GPIO del pulsador
     bool    state_;      // true = presionado ahora mismo
     bool    requested_;  // flag: peatón solicitó cruce
@@ -52,6 +53,7 @@ public:
 // Traffic
 // ----------------------------------------------------------
 class Traffic {
+private:
     uint8_t  currentState_;  // estado actual (0=ROJO,1=VERDE…)
     uint32_t stateTime_;     // ms en que se entró al estado
 
@@ -74,6 +76,7 @@ public:
 // App
 // ----------------------------------------------------------
 class App {
+private:
     Button  button_;
     Traffic traffic_;
 public:

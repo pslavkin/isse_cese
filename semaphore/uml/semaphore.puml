@@ -1,18 +1,18 @@
-' ╔══════════════════════════════════════════════════════════════════════════════╗
-' ║              DIAGRAMA UML DE CLASES — Semáforo Peatonal                    ║
+' ╔═════════════════════════════════════════════════════════════════════════════╗
+' ║              DIAGRAMA UML DE CLASES — Semáforo Peatonal                     ║
 ' ║                  Archivo didáctico: evolución paso a paso                   ║
-' ╠══════════════════════════════════════════════════════════════════════════════╣
+' ╠═════════════════════════════════════════════════════════════════════════════╣
 ' ║  INSTRUCCIONES PARA EL ALUMNO:                                              ║
 ' ║  Este archivo muestra cómo se construye un diagrama UML de clases           ║
 ' ║  de manera incremental, desde lo más simple hasta el diagrama completo.     ║
-' ║                                                                              ║
+' ║                                                                             ║
 ' ║  Cada PASO agrega elementos nuevos. Para ver cada etapa:                    ║
 ' ║    1. Descomentá el bloque del PASO que querés ver                          ║
 ' ║    2. Mantené comentados todos los pasos anteriores                         ║
 ' ║    3. Renderizá con PlantUML (VSCode plugin, online editor, etc.)           ║
-' ║                                                                              ║
-' ║  Atajo: Ctrl+Shift+P → "PlantUML: Preview Current Diagram"                 ║
-' ╚══════════════════════════════════════════════════════════════════════════════╝
+' ║                                                                             ║
+' ║  Atajo: Ctrl+Shift+P → "PlantUML: Preview Current Diagram"                  ║
+' ╚═════════════════════════════════════════════════════════════════════════════╝
 
 
 ' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -40,7 +40,7 @@ class App
 
 @startuml semaphore2
 
-class App
+class App  
 class Button
 class Traffic
 class Timer
@@ -97,7 +97,7 @@ class Traffic {
     + {static} YELLOW_TIME : uint32_t
     + {static} RED_TIME    : uint32_t
     + {static} BLINKY_TIME : uint32_t
-    ' Traffic posee los tres LEDs por valor (composición)
+    ' Traffic posee los tres LEDs por valor (composición) 
     - red_    : RedLed
     - yellow_ : YellowLed
     - green_  : GreenLed
@@ -216,7 +216,7 @@ class App {
 ' PASO 5 — Relaciones
 ' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ' Objetivo: conectar las clases con el tipo de flecha correcto.
-' Composición (*--), herencia (--|>), asociación (-->), dependencia (..>).
+' Composición (*-- (rombo relleno)), herencia (--|>), asociación (-->), dependencia (..>).
 '
 ' NUEVO — Herencia  "──|>"  (flecha con triángulo hueco):
 '   RedLed, YellowLed y GreenLed son Led (relación "es un").
@@ -243,7 +243,7 @@ YellowLed --|> Led
 GreenLed  --|> Led
 
 ' ── COMPOSICIÓN: Traffic posee sus tres LEDs por valor ────────────────────
-Traffic *-- "1" RedLed    : red_ >
+Traffic *-- "0..1" RedLed    : red_ >
 Traffic *-- "1" YellowLed : yellow_ >
 Traffic *-- "1" GreenLed  : green_ >
 

@@ -100,6 +100,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gdb-multiarch \
     cgdb \
     tmux \
+    # for viewing images, e.g. from QM screenshots
+    shotwell \
+    feh \ 
     # gosu — clean privilege drop from root to host user at runtime
     gosu \
     && apt-get clean && rm -rf /var/lib/apt/lists/*

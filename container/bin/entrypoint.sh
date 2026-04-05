@@ -39,6 +39,16 @@ echo -e "\033[32m*** Welcome to isse container! ***\033[0m"
 echo "  Running as: ${HOST_USER} (uid=${FIXUID} gid=${FIXGID})"
 
  
+# 1. Redirige cachés de fuentes y aplicaciones
+export XDG_CACHE_HOME=/tmp
+# 2. Redirige preferencias y configuración de Java
+export JAVA_OPTS="-Djava.util.prefs.userRoot=/tmp -Duser.home=/tmp"
+# 3. Redirige la carpeta de archivos temporales estándar
+export TMPDIR=/tmp
+# 4. (Opcional) Variable específica que algunos wrappers de Java leen
+export _JAVA_OPTIONS="-Djava.util.prefs.userRoot=/tmp -Duser.home=/tmp"
+
+
 chown "$FIXUID:$FIXGID" "${USER_HOME}/.zshrc" "${USER_HOME}/.bashrc" 2>/dev/null || true
  
 # ── Drop privileges and exec the requested command ───────────────────────────

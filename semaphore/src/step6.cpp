@@ -227,9 +227,9 @@ public:
         printf("║  Button    → clearRequest() llamado por      ║\n");
         printf("║              Traffic tras atender solicitud  ║\n");
         printf("╠══════════════════════════════════════════════╣\n");
-        printf("║  Super-loop:                                  ║\n");
-        printf("║    1. button.update()                         ║\n");
-        printf("║    2. traffic.update() → isRequested()        ║\n");
+        printf("║  Super-loop:                                 ║\n");
+        printf("║    1. button.update()                        ║\n");
+        printf("║    2. traffic.update() → isRequested()       ║\n");
         printf("╠══════════════════════════════════════════════╣\n");
         printf("║  Presioná SPACE para solicitar cruce         ║\n");
         printf("║  Ctrl+C para salir                           ║\n");
