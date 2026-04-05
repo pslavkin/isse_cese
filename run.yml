@@ -1,0 +1,28 @@
+services:
+  isse:
+    image: pslavkin/isse:1.0
+    pull_policy: if_not_present
+    container_name: isse
+    network_mode: host
+    environment:
+      - WAYLAND_DISPLAY=wayland-1
+      - XDG_RUNTIME_DIR=/tmp/runtime
+      - DISPLAY=:1
+      - _JAVA_AWT_WM_NONREPARENTING=1
+      - XAUTHORITY=/tmp/.Xauthority
+      - HOST_USER=pslavkin
+      - FIXUID=1000
+      - FIXGID=1000
+      - QPC=/opt/qp-bundle/qpc
+    volumes:
+      - .:/isse
+      - ~/.local:/home/pslavkin/.local
+      - ~/.gitconfig:/home/pslavkin/.gitconfig:ro
+      - ~/.ssh:/home/pslavkin/.ssh:ro
+      - /etc/resolv.conf:/etc/resolv.conf:ro
+      - /run/user/1000/wayland-1:/tmp/runtime/wayland-1
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /home/pslavkin/.Xauthority:/tmp/.Xauthority:ro
+    working_dir: /isse
+    stdin_open: true
+    tty: true

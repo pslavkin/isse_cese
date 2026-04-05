@@ -1,0 +1,465 @@
+' ╔══════════════════════════════════════════════════════════════════════════════╗
+' ║              DIAGRAMA UML DE CLASES — Semáforo Peatonal                    ║
+' ║                  Archivo didáctico: evolución paso a paso                   ║
+' ╠══════════════════════════════════════════════════════════════════════════════╣
+' ║  INSTRUCCIONES PARA EL ALUMNO:                                              ║
+' ║  Este archivo muestra cómo se construye un diagrama UML de clases           ║
+' ║  de manera incremental, desde lo más simple hasta el diagrama completo.     ║
+' ║                                                                              ║
+' ║  Cada PASO agrega elementos nuevos. Para ver cada etapa:                    ║
+' ║    1. Descomentá el bloque del PASO que querés ver                          ║
+' ║    2. Mantené comentados todos los pasos anteriores                         ║
+' ║    3. Renderizá con PlantUML (VSCode plugin, online editor, etc.)           ║
+' ║                                                                              ║
+' ║  Atajo: Ctrl+Shift+P → "PlantUML: Preview Current Diagram"                 ║
+' ╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' PASO 1 — Clase mínima
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Objetivo: entender la sintaxis mínima de PlantUML.
+' @startuml + una sola clase vacía. Sintaxis base obligatoria del lenguaje.
+
+@startuml semaphore1
+
+class App
+
+@enduml
+
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' PASO 2 — Inventario
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Objetivo: listar TODAS las clases del sistema antes de relacionarlas.
+' Pensar antes de conectar. Incluimos ya la jerarquía de LEDs.
+'
+' Decisión de diseño: cada color de LED es su propia clase concreta que
+' hereda de una clase base abstracta Led.  Esto permite polimorfismo y
+' facilita reemplazar un LED individual sin tocar los demás.
+
+@startuml semaphore2
+
+class App
+class Button
+class Traffic
+class Timer
+
+' Jerarquía de LEDs
+abstract class Led
+class RedLed
+class YellowLed
+class GreenLed
+
+@enduml
+
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' PASO 3 — Atributos
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Objetivo: mostrar el estado interno de cada clase.
+' Estado interno: visibilidad (-, +, #) nombre y tipo de cada campo.
+'
+' Nota sobre "abstract": una clase abstracta NO puede instanciarse directamente.
+' Sus atributos y métodos son heredados por las subclases concretas.
+' En PlantUML se declara con la palabra clave "abstract class".
+'
+' Sintaxis de visibilidad:
+'   -  private    → solo la propia clase
+'   #  protected  → la clase y sus subclases  ← clave para la herencia
+'   +  public     → cualquiera
+'
+' Usamos # en Led para que RedLed/YellowLed/GreenLed puedan acceder a pin_.
+
+@startuml semaphore3
+
+abstract class Led {
+    ' # protected: las subclases pueden leer/escribir pin_ directamente
+    # pin_   : uint8_t
+    # state_ : bool
+}
+
+' Las subclases no agregan atributos nuevos: solo especializan el color
+class RedLed
+class YellowLed
+class GreenLed
+
+class Button {
+    - pin_       : uint8_t
+    - state_     : bool
+    - requested_ : bool
+}
+
+class Traffic {
+    - currentState_ : uint8_t
+    - stateTime_    : uint32_t
+    + {static} GREEN_TIME  : uint32_t
+    + {static} YELLOW_TIME : uint32_t
+    + {static} RED_TIME    : uint32_t
+    + {static} BLINKY_TIME : uint32_t
+    ' Traffic posee los tres LEDs por valor (composición)
+    - red_    : RedLed
+    - yellow_ : YellowLed
+    - green_  : GreenLed
+}
+
+class App {
+    - button_  : Button
+    - traffic_ : Traffic
+}
+
+class Timer {
+    ' Sin atributos de instancia: todos sus métodos son estáticos
+}
+
+@enduml
+
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' PASO 4 — Métodos
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Objetivo: mostrar el comportamiento — público, privado, estático, abstracto.
+'
+' Método abstracto: declarado en la clase base pero SIN implementación.
+'   En PlantUML se marca con {abstract}.
+'   Obliga a cada subclase concreta a proveer su propia implementación.
+'
+' Aquí Led declara on() y off() como abstractos.
+' RedLed, YellowLed y GreenLed los implementan (cada una sabe qué pin usar).
+
+@startuml semaphore4
+
+abstract class Led {
+    == Atributos ==
+    # pin_   : uint8_t
+    # state_ : bool
+    == Métodos ==
+    + Led(pin : uint8_t)
+    + init()
+    ' Métodos abstractos: las subclases DEBEN implementarlos
+    + {abstract} on()
+    + {abstract} off()
+    + isOn() : bool
+}
+
+class RedLed {
+    + RedLed(pin : uint8_t)
+    + on()
+    + off()
+}
+
+class YellowLed {
+    + YellowLed(pin : uint8_t)
+    + on()
+    + off()
+    ' Comportamiento extra: parpadeo para fase de precaución
+    + blink(periodMs : uint32_t)
+}
+
+class GreenLed {
+    + GreenLed(pin : uint8_t)
+    + on()
+    + off()
+}
+
+class Timer {
+    + {static} millis() : uint32_t
+    + {static} delay(ms : uint32_t)
+}
+
+class Button {
+    == Atributos ==
+    - pin_       : uint8_t
+    - state_     : bool
+    - requested_ : bool
+    == Métodos ==
+    + Button(pin : uint8_t)
+    + init()
+    + update()
+    + isRequested() : bool
+    - clearRequest()
+}
+
+class Traffic {
+    == Atributos ==
+    - currentState_ : uint8_t
+    - stateTime_    : uint32_t
+    + {static} GREEN_TIME  : uint32_t
+    + {static} YELLOW_TIME : uint32_t
+    + {static} RED_TIME    : uint32_t
+    + {static} BLINKY_TIME : uint32_t
+    - red_    : RedLed
+    - yellow_ : YellowLed
+    - green_  : GreenLed
+    == Métodos ==
+    + Traffic()
+    + init()
+    + update()
+    + requestCross()
+    - enterState(state : uint8_t)
+}
+
+class App {
+    == Atributos ==
+    - button_  : Button
+    - traffic_ : Traffic
+    == Métodos ==
+    + App()
+    + init()
+    + run()
+}
+
+@enduml
+
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' PASO 5 — Relaciones
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Objetivo: conectar las clases con el tipo de flecha correcto.
+' Composición (*--), herencia (--|>), asociación (-->), dependencia (..>).
+'
+' NUEVO — Herencia  "──|>"  (flecha con triángulo hueco):
+'   RedLed, YellowLed y GreenLed son Led (relación "es un").
+'   Heredan pin_, state_, init() e isOn() de la clase base.
+'   Cada una DEBE proveer su propia on() y off() (métodos abstractos).
+'
+' MULTIPLICIDAD en la composición de Traffic → Led:
+'   Traffic tiene exactamente 1 RedLed, 1 YellowLed, 1 GreenLed.
+
+@startuml semaphore5
+
+abstract class Led
+class RedLed
+class YellowLed
+class GreenLed
+class Button
+class Traffic
+class Timer
+class App
+
+' ── HERENCIA: subclases de Led (triángulo hueco --|>) ─────────────────────
+RedLed    --|> Led
+YellowLed --|> Led
+GreenLed  --|> Led
+
+' ── COMPOSICIÓN: Traffic posee sus tres LEDs por valor ────────────────────
+Traffic *-- "1" RedLed    : red_ >
+Traffic *-- "1" YellowLed : yellow_ >
+Traffic *-- "1" GreenLed  : green_ >
+
+' ── COMPOSICIÓN: App posee Button y Traffic ───────────────────────────────
+App *-- "1" Button  : button_ >
+App *-- "1" Traffic : traffic_ >
+
+' ── ASOCIACIÓN: Traffic consulta el estado del Button ─────────────────────
+Traffic --> "1" Button : consulta >
+
+' ── DEPENDENCIA: uso transitorio de Timer ─────────────────────────────────
+Button    ..> Timer : usa >
+Traffic   ..> Timer : usa >
+YellowLed ..> Timer : usa >
+
+@enduml
+
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' PASO 6 — Notas
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Objetivo: documentar decisiones de diseño con:
+'   note right of / note bottom of / alias flotante (..)
+
+@startuml semaphore6
+
+abstract class Led
+class RedLed
+class YellowLed
+class GreenLed
+class Button
+class Traffic
+class Timer
+class App
+
+RedLed    --|> Led
+YellowLed --|> Led
+GreenLed  --|> Led
+
+Traffic *-- "1" RedLed
+Traffic *-- "1" YellowLed
+Traffic *-- "1" GreenLed
+App     *-- "1" Button
+App     *-- "1" Traffic
+Traffic --> "1" Button
+Button    ..> Timer
+Traffic   ..> Timer
+YellowLed ..> Timer
+
+note right of Led
+  Clase **abstracta**: no se puede instanciar.
+  Define la interfaz común on() / off().
+  pin_ es **protected** para que las
+  subclases accedan sin getter.
+end note
+
+note right of YellowLed
+  Única subclase con blink():
+  la fase de precaución del
+  semáforo la usa exclusivamente.
+end note
+
+note bottom of Timer
+  Todos los métodos son **static**.
+  En hardware real: reemplazar con
+  HAL_GetTick() / HAL_Delay()
+end note
+
+note "Super-loop:\n1. button.update()\n2. traffic.update()\n   (consulta isRequested())" as LoopNote
+App .. LoopNote
+
+@enduml
+
+
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' PASO 7 — Diagrama final
+' ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+' Objetivo: presentación completa con skinparam, colores por estereotipo,
+' packages y layout dirigido.
+'
+' skinparam classAttributeIconSize 0  → oculta los íconos +/-/# (más limpio)
+' skinparam class { BackgroundColor<<X>> }  → color por estereotipo
+'
+' Estereotipos usados:
+'   <<control>>   → lógica de negocio / máquina de estados
+'   <<hardware>>  → abstracción de dispositivo físico
+'   <<utility>>   → clase de servicio sin estado propio
+
+@startuml semaphore7
+
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor<<control>>  LightSkyBlue
+    BorderColor<<control>>      SteelBlue
+    BackgroundColor<<hardware>> LightGoldenRodYellow
+    BorderColor<<hardware>>     Goldenrod
+    BackgroundColor<<utility>>  HoneyDew
+    BorderColor<<utility>>      SeaGreen
+    BackgroundColor             White
+    ArrowColor                  SlateGray
+    FontName                    Monospaced
+}
+
+package "Application" {
+    class App {
+        == Atributos ==
+        - button_  : Button
+        - traffic_ : Traffic
+        == Métodos ==
+        + App()
+        + init()
+        + run()
+    }
+}
+
+package "Control" {
+    class Traffic <<control>> {
+        == Atributos ==
+        - currentState_ : uint8_t
+        - stateTime_    : uint32_t
+        + {static} GREEN_TIME  : uint32_t
+        + {static} YELLOW_TIME : uint32_t
+        + {static} RED_TIME    : uint32_t
+        + {static} BLINKY_TIME : uint32_t
+        - red_    : RedLed
+        - yellow_ : YellowLed
+        - green_  : GreenLed
+        == Métodos ==
+        + Traffic()
+        + init()
+        + update()
+        + requestCross()
+        - enterState(state : uint8_t)
+    }
+}
+
+package "HAL" {
+    class Button <<hardware>> {
+        == Atributos ==
+        - pin_       : uint8_t
+        - state_     : bool
+        - requested_ : bool
+        == Métodos ==
+        + Button(pin : uint8_t)
+        + init()
+        + update()
+        + isRequested() : bool
+        - clearRequest()
+    }
+
+    abstract class Led <<hardware>> {
+        == Atributos ==
+        # pin_   : uint8_t
+        # state_ : bool
+        == Métodos ==
+        + Led(pin : uint8_t)
+        + init()
+        + {abstract} on()
+        + {abstract} off()
+        + isOn() : bool
+    }
+
+    class RedLed <<hardware>> {
+        + RedLed(pin : uint8_t)
+        + on()
+        + off()
+    }
+
+    class YellowLed <<hardware>> {
+        + YellowLed(pin : uint8_t)
+        + on()
+        + off()
+        + blink(periodMs : uint32_t)
+    }
+
+    class GreenLed <<hardware>> {
+        + GreenLed(pin : uint8_t)
+        + on()
+        + off()
+    }
+
+    class Timer <<utility>> {
+        + {static} millis() : uint32_t
+        + {static} delay(ms : uint32_t)
+    }
+}
+
+' ── Herencia ────────────────────────────────────────────────────────────────
+RedLed    --|> Led
+YellowLed --|> Led
+GreenLed  --|> Led
+
+' ── Composición ─────────────────────────────────────────────────────────────
+App     *-down- "1" Traffic   : traffic_ >
+App     *-down- "1" Button    : button_ >
+Traffic *-down- "1" RedLed    : red_ >
+Traffic *-down- "1" YellowLed : yellow_ >
+Traffic *-down- "1" GreenLed  : green_ >
+
+' ── Asociación ──────────────────────────────────────────────────────────────
+Traffic -left-> "1" Button : consulta >
+
+' ── Dependencia ─────────────────────────────────────────────────────────────
+Button    ..> Timer : usa >
+Traffic   ..> Timer : usa >
+YellowLed ..> Timer : usa >
+
+' ── Notas ───────────────────────────────────────────────────────────────────
+note right of Led
+  Clase **abstracta**: define la
+  interfaz común on() / off().
+  pin_ es **protected** para
+  acceso directo en subclases.
+end note
+
+note "Super-loop:\n1. button.update()\n2. traffic.update()" as LoopNote
+App .. LoopNote
+
+@enduml
