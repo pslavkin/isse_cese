@@ -351,3 +351,81 @@ package "producer-consumer" {
 
 
 @enduml
+
+@startuml flowchart
+start
+:Step one;
+if (Decision?) then (yes)
+  :Path A;
+else (no)
+  :Path B;
+endif
+:Final step;
+stop
+@enduml
+
+@startuml basic_state_machine
+[*] --> StateA          ' [*] = initial/final pseudo-state
+StateA --> StateB : event / action
+StateB --> StateC : condition
+StateC --> [*]          ' back to [*] = end
+@enduml
+
+@startuml semaphore_state_machine
+skinparam style strictuml
+
+' Force state diagram mode
+hide empty description
+[*] --> Red
+
+state Red : entry / stop traffic
+
+state Green : entry / allow traffic
+
+state Yellow : entry / slow down
+
+state Flashing : entry / flash amber
+
+Red    --> Green   : timer / go
+Green  --> Yellow  : timer / warn
+Yellow --> Red     : timer / stop
+
+Red    --> Flashing : power_fail
+Flashing --> Red    : restore
+
+Yellow --> [*] : shutdown
+@enduml
+
+@startuml
+hide empty description
+
+state "Waiting for input" as W #lightblue {
+ ' 1. Lifecycle actions
+'  entry / show cursor
+'  exit  / hide cursor
+'  do    / blink animation
+'
+'  ' 2. Internal transition (no state change)
+'  timeout / log warning
+'
+'  ' 3. Sub-states
+  [*] --> Idle
+  Idle --> Typing : keypress
+  Typing --> Idle  : backspace_all
+  note  left of Idle : "user must type something" 
+'
+'  ' 4. Concurrent regions
+  --
+  [*] --> SpellCheck
+  SpellCheck --> SpellCheck : word_typed
+'
+'  ' 5. History (resume last substate on re-entry)
+'  [H] --> Idle
+'
+'  ' 6. Note
+}
+'
+'[*]  --> W
+'W    --> Submitted : submit [form_valid]
+'W    --> [*]        : cancel
+@enduml

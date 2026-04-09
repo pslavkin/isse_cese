@@ -4,7 +4,7 @@
 //  App imprime los valores iniciales de todos los atributos.
 //
 //  Notas C++:
-//  • protected  → accesible desde subclases (Led → RedLed…)
+//  • protected  → accesible desde subclases 
 //  • uint8_t / uint32_t → tipos de ancho fijo (<cstdint>)
 //  • static constexpr → constante de clase, sin instancia
 // ============================================================
@@ -33,9 +33,9 @@ public:
 // ----------------------------------------------------------
 // Subclases concretas (sin atributos nuevos por ahora)
 // ----------------------------------------------------------
-class RedLed    : public Led {};
-class YellowLed : public Led {};
-class GreenLed  : public Led {};
+class RedLed     {};
+class YellowLed  {};
+class GreenLed   {};
 
 // ----------------------------------------------------------
 // Button
@@ -90,7 +90,7 @@ public:
         printf("║  Traffic::RED_TIME    = %5u ms         ║\n", Traffic::RED_TIME);
         printf("║  Traffic::BLINKY_TIME = %5u ms         ║\n", Traffic::BLINKY_TIME);
         printf("╠══════════════════════════════════════════╣\n");
-        printf("║  Led::pin_   (protected) heredado por    ║\n");
+        printf("║  Led::pin_   (protected)                 ║\n");
         printf("║  RedLed / YellowLed / GreenLed           ║\n");
         printf("╚══════════════════════════════════════════╝\n");
     }

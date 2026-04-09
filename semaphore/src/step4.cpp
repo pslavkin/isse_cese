@@ -325,6 +325,9 @@ public:
         printf("║   Presioná SPACE para solicitar cruce    ║\n");
         printf("║   (el botón aún no actúa sobre el FSM)   ║\n");
         printf("║   Ctrl+C para salir                      ║\n");
+        printf("╠══════════════════════════════════════════╣\n");
+        printf("║  Led::pin_   (protected) heredado por    ║\n");
+        printf("║  RedLed / YellowLed / GreenLed           ║\n");
         printf("╚══════════════════════════════════════════╝\n\n");
         button_.init();
         traffic_.init();

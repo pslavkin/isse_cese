@@ -21,9 +21,9 @@ class Led {};
 // ----------------------------------------------------------
 // Subclases concretas de LED (una por color)
 // ----------------------------------------------------------
-class RedLed    : public Led {};
-class YellowLed : public Led {};
-class GreenLed  : public Led {};
+class RedLed    {};
+class YellowLed {};
+class GreenLed  {};
 
 // ----------------------------------------------------------
 // Button — abstracción del pulsador peatonal

@@ -277,7 +277,19 @@ class GreenLed
 class Button
 class Traffic
 class Timer
+
+package "Application" {
 class App
+}
+
+note as LoopNote
+   Super-loop: 
+   1. button.update()
+   2. traffic.update()
+   (consulta isRequested())
+end note
+
+App .. LoopNote
 
 RedLed    --|> Led
 YellowLed --|> Led
@@ -312,8 +324,6 @@ note bottom of Timer
   HAL_GetTick() / HAL_Delay()
 end note
 
-note "Super-loop:\n1. button.update()\n2. traffic.update()\n   (consulta isRequested())" as LoopNote
-App .. LoopNote
 
 @enduml
 
@@ -334,21 +344,23 @@ App .. LoopNote
 
 @startuml semaphore7
 
-skinparam classAttributeIconSize 0
+'skinparam classAttributeIconSize 0
 skinparam class {
-    BackgroundColor<<control>>  LightSkyBlue
-    BorderColor<<control>>      SteelBlue
-    BackgroundColor<<hardware>> LightGoldenRodYellow
-    BorderColor<<hardware>>     Goldenrod
-    BackgroundColor<<utility>>  HoneyDew
-    BorderColor<<utility>>      SeaGreen
-    BackgroundColor             White
-    ArrowColor                  SlateGray
-    FontName                    Monospaced
+   BackgroundColor<<Application>>  Pink
+   BorderColor<<Application>>      Red
+   BackgroundColor<<control>>      LightSkyBlue
+   BorderColor<<control>>          SteelBlue
+   BackgroundColor<<hardware>>     LightGoldenRodYellow
+   BorderColor<<hardware>>         Goldenrod
+   BackgroundColor<<utility>>      HoneyDew
+   BorderColor<<utility>>          SeaGreen
+   BackgroundColor                 White
+   ArrowColor                      SlateGray
+   FontName                        Monospaced
 }
 
 package "Application" {
-    class App {
+   class App <<Application>> {
         == Atributos ==
         - button_  : Button
         - traffic_ : Traffic
@@ -459,7 +471,13 @@ note right of Led
   acceso directo en subclases.
 end note
 
-note "Super-loop:\n1. button.update()\n2. traffic.update()" as LoopNote
+note as LoopNote
+   Super-loop: 
+   1. button.update()
+   2. traffic.update()
+   (consulta isRequested())
+end note
+
 App .. LoopNote
 
 @enduml
