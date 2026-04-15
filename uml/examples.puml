@@ -1,3 +1,21 @@
+@startuml
+
+
+class App {
+   == attributes estaic ==
+   +myAttr: uint32_t
+   +myAttr: uint32_t
+   == metodos estaic ==
+   +myMethod(): void
+   +myMethod(): void
+   +myMethod(): void
+   +myMethod(): void
+}
+
+@enduml
+
+
+
 @startuml relationships
 
 left to right direction
@@ -129,7 +147,7 @@ A .. extraNote
 
 @startuml attributes
 class A {
-   == attributes ==
+   == attributes estaic ==
    +publicAttribute: int
    -privateAttribute: string
    #protectedAttribute: float
@@ -246,8 +264,8 @@ class B {
   +pub
 }
 
-object myAobj
-object myBobj
+object "<u>myAobj</u>" as myAobj
+object "<u>myBobj</u>" as myBobj
 
 myAobj .up.|> A : instanceOf
 myBobj .up.|> B : instanceOf
@@ -396,7 +414,7 @@ Flashing --> Red    : restore
 Yellow --> [*] : shutdown
 @enduml
 
-@startuml
+@startuml text_editor_state_machine
 hide empty description
 
 state "Waiting for input" as W #lightblue {

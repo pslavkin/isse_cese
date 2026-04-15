@@ -40,7 +40,7 @@ class App
 
 @startuml semaphore2
 
-class App  
+class App
 class Button
 class Traffic
 class Timer
@@ -71,7 +71,7 @@ class GreenLed
 '
 ' Usamos # en Led para que RedLed/YellowLed/GreenLed puedan acceder a pin_.
 
-@startuml semaphore3
+@startuml semaphore
 
 abstract class Led {
     ' # protected: las subclases pueden leer/escribir pin_ directamente
@@ -342,7 +342,8 @@ end note
 '   <<hardware>>  → abstracción de dispositivo físico
 '   <<utility>>   → clase de servicio sin estado propio
 
-@startuml semaphore7
+@startuml 
+'semaphore7
 
 'skinparam classAttributeIconSize 0
 skinparam class {
