@@ -9,8 +9,8 @@
   <item name="backups">0</item>
  </group>
  <group name="windows">
-  <item id="AOs::Sem::SM">-564,0,1026,653</item>
-  <item id=".::main.cpp">0,0,1172,650,*</item>
+  <item id="AOs::Sem::SM">-830,0,1026,653</item>
+  <item id=".::main.cpp">0,0,435,373,*</item>
  </group>
  <group name="search">
   <item name="options">2032128</item>
