@@ -1,0 +1,925 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model version="7.0.1" links="0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm7.xsd">
+ <documentation>About this example:
+-------------------
+Simple &quot;Blinky&quot; console application for workstations (Windows, Linux, macOS)
+(see &quot;QM Tutorial&quot; at: https://www.state-machine.com/qm/gs_tut.html)
+
+This example demonstrates:
+- Active object (Blinky) with state machine
+- Board Support Package abstraction for portability
+- BSP implementation for desktop OS (Windows, Linux, MacOS)
+- Platform-independent main() function
+- Makefile to build the generated code on desktop OS (Windows, Linux, MacOS)
+- Customized tools for building the generated code directly from QM
+
+Building the example:
+---------------------
+To build this example, you will need the QP/C++ framework installed on your computer and the GNU-GCC compiler, which you can get by installing the QP-bundle from:
+
+https://www.state-machine.com/#Downloads
+
+Running the example:
+--------------------
+This example is a simple console application, which you can run from a terminal.
+
+For more QM examples for QP/C++ see:
+https://www.state-machine.com/qpcpp/exa.html</documentation>
+ <framework name="qpcpp"/>
+ <package name="AOs" stereotype="0x02" namespace="APP::">
+  <class name="Traffic" superclass="qpcpp::QActive">
+   <attribute name="colorTimeEvt" type="QP::QTimeEvt" visibility="0x02" properties="0x00"/>
+   <attribute name="printTimeEvt" type="QP::QTimeEvt" visibility="0x02" properties="0x00"/>
+   <attribute name="inst" type="Traffic" visibility="0x00" properties="0x01"/>
+   <attribute name="ledR" type="APP::LedR&amp;" visibility="0x00" properties="0x00">
+    <code>= APP::LedR::inst;</code>
+   </attribute>
+   <attribute name="ledY" type="APP::LedY&amp;" visibility="0x00" properties="0x00">
+    <code>= APP::LedY::inst;</code>
+   </attribute>
+   <attribute name="ledG" type="APP::LedG&amp;" visibility="0x00" properties="0x00">
+    <code>= APP::LedG::inst;</code>
+   </attribute>
+   <attribute name="buttonPressed" type="std::uint8_t" visibility="0x00" properties="0x00">
+    <code>=0;</code>
+   </attribute>
+   <operation name="Traffic" type="" visibility="0x00" properties="0x00">
+    <code>: QActive(Q_STATE_CAST(&amp;Traffic::initial)),
+    colorTimeEvt(this, TOUT_SIG, 0U),
+    printTimeEvt(this, PRINT_SIG, 0U)
+</code>
+   </operation>
+   <statechart properties="0x02">
+    <initial target="../1">
+     <action>printTimeEvt.armX(PRINT_TIME, PRINT_TIME);
+colorTimeEvt.armX(COLOR_R_TIME, COLOR_Y_INACTIVE_TIME);
+(void)e; // unused parameter</action>
+     <initial_glyph conn="26,4,5,0,8,4">
+      <action box="0,-2,10,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="root">
+     <initial target="../7">
+      <action brief="initial">(void)e; // unused parameter</action>
+      <initial_glyph color="3" conn="32,14,5,0,-14,6">
+       <action box="-14,-2,9,2"/>
+      </initial_glyph>
+     </initial>
+     <tran trig="BUTTON">
+      <action>std::cout &lt;&lt; &quot;button pressed in root&quot; &lt;&lt; std::endl;
+APP::Traffic::inst.buttonPressed=1;</action>
+      <tran_glyph conn="3,50,3,-1,20">
+       <action box="3,-2,10,2"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="PRINT">
+      <action>std::cout &lt;&lt; APP::Traffic::inst.colorTimeEvt.getCtr()/100 &lt;&lt; std::endl;</action>
+      <tran_glyph conn="3,53,3,-1,20">
+       <action box="3,-2,10,2"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="INACTIVE" target="../../2">
+      <action>
+</action>
+      <tran_glyph conn="90,45,1,3,10">
+       <action box="0,-2,10,2"/>
+      </tran_glyph>
+     </tran>
+     <state name="YtoG">
+      <entry>inst.ledY.on();
+APP::Traffic::inst.colorTimeEvt.rearm(COLOR_Y_TIME);</entry>
+      <exit>inst.ledY.off();</exit>
+      <tran trig="TOUT" target="../../5">
+       <tran_glyph conn="55,28,1,3,12">
+        <action box="2,-2,8,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph color="3" node="39,20,16,17">
+       <entry box="0,3,15,7"/>
+       <exit box="0,10,15,4"/>
+      </state_glyph>
+     </state>
+     <state name="G">
+      <entry>inst.ledG.on();
+APP::Traffic::inst.colorTimeEvt.rearm(COLOR_G_TIME);</entry>
+      <exit>inst.ledG.off();</exit>
+      <tran trig="TOUT" target="../../6">
+       <tran_glyph conn="70,40,2,1,7,-15">
+        <action box="-12,5,8,2"/>
+       </tran_glyph>
+      </tran>
+      <tran trig="BUTTON">
+       <action>std::cout &lt;&lt; &quot;button pressed in G&quot; &lt;&lt; std::endl;
+APP::Traffic::inst.buttonPressed=1;
+APP::Traffic::inst.colorTimeEvt.rearm(COLOR_G_TIME/10);</action>
+       <tran_glyph conn="74,40,2,-1,6,12">
+        <action box="0,4,10,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph color="1" node="67,20,20,20">
+       <entry box="0,3,20,7"/>
+       <exit box="0,10,15,5"/>
+      </state_glyph>
+     </state>
+     <state name="YtoR">
+      <entry>inst.ledY.on();
+APP::Traffic::inst.colorTimeEvt.rearm(COLOR_Y_TIME);</entry>
+      <exit>inst.ledY.off();</exit>
+      <tran trig="TOUT" target="../../7">
+       <tran_glyph conn="39,47,3,2,-20,-5">
+        <action box="-13,-2,10,3"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph color="3" node="39,39,16,18">
+       <entry box="0,3,16,7"/>
+       <exit box="0,10,14,5"/>
+      </state_glyph>
+     </state>
+     <state name="R">
+      <entry>inst.ledR.on();
+if(APP::Traffic::inst.buttonPressed) {
+  APP::Traffic::inst.colorTimeEvt.rearm(COLOR_R_USER_TIME);
+} else {
+  APP::Traffic::inst.colorTimeEvt.rearm(COLOR_R_TIME);
+}</entry>
+      <exit>inst.ledR.off();
+APP::Traffic::inst.buttonPressed=0;
+std::cout &lt;&lt; &quot;button released&quot; &lt;&lt; std::endl;</exit>
+      <tran trig="TOUT" target="../../4">
+       <tran_glyph conn="27,28,1,3,12">
+        <action box="2,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <tran trig="BUTTON">
+       <action>std::cout &lt;&lt; &quot;button in R&quot; &lt;&lt; std::endl;
+APP::Traffic::inst.buttonPressed=1;
+APP::Traffic::inst.colorTimeEvt.rearm(COLOR_R_USER_TIME);</action>
+       <tran_glyph conn="27,36,1,-1,7">
+        <action box="1,-3,10,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph color="2" node="7,20,20,22">
+       <entry box="0,3,20,8"/>
+       <exit box="0,11,16,9"/>
+      </state_glyph>
+     </state>
+     <state_glyph node="3,8,87,52"/>
+    </state>
+    <state name="inactive">
+     <entry>std::cout &lt;&lt; &quot;inactive state&quot; &lt;&lt; std::endl;
+inst.ledY.on();
+APP::Traffic::inst.colorTimeEvt.rearm(COLOR_Y_INACTIVE_TIME);</entry>
+     <tran trig="RESUME" target="../../1">
+      <tran_glyph conn="100,51,3,1,-10">
+       <action box="-9,-2,10,2"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="TOUT">
+      <action>APP::LedY::inst.toggle();</action>
+      <tran_glyph conn="100,29,3,-1,16">
+       <action box="4,-2,10,2"/>
+      </tran_glyph>
+     </tran>
+     <tran trig="PRINT">
+      <action>//std::cout &lt;&lt; APP::Traffic::inst.colorTimeEvt.getCtr()/100 &lt;&lt; std::endl;</action>
+      <tran_glyph conn="100,34,3,-1,16">
+       <action box="3,-2,10,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="100,8,22,52">
+      <entry box="0,3,21,6"/>
+     </state_glyph>
+    </state>
+    <state_diagram size="125,64"/>
+   </statechart>
+  </class>
+  <class name="Led">
+   <operation name="ledOn" type="void" visibility="0x00" properties="0x00">
+    <parameter name="color" type="std::string"/>
+    <code>std::cout &lt;&lt; &quot;Led &quot; &lt;&lt; color &lt;&lt; &quot; On&quot; &lt;&lt; std::endl;</code>
+   </operation>
+   <operation name="ledOff" type="void" visibility="0x00" properties="0x00">
+    <parameter name="color" type="std::string"/>
+    <code>(void)color;
+//std::cout &lt;&lt; &quot;Led &quot; &lt;&lt; color &lt;&lt; &quot; Off&quot; &lt;&lt; std::endl;</code>
+   </operation>
+   <operation name="ledToggle" type="void" visibility="0x00" properties="0x00">
+    <parameter name="color" type="std::string"/>
+    <parameter name="state" type="std::uint8_t"/>
+    <code>if(state) {
+  std::cout &lt;&lt; &quot;Led &quot; &lt;&lt; color &lt;&lt; &quot; On&quot; &lt;&lt; std::endl;
+}
+ else {
+  std::cout &lt;&lt; &quot;Led &quot; &lt;&lt; color &lt;&lt; &quot; Off&quot; &lt;&lt; std::endl;
+}</code>
+   </operation>
+  </class>
+  <class name="LedR" superclass="AOs::Led">
+   <attribute name="inst" type="LedR" visibility="0x00" properties="0x01">
+    <code>;</code>
+   </attribute>
+   <operation name="on" type="void" visibility="0x00" properties="0x00">
+    <code>this-&gt;ledOn(&quot;R&quot;);</code>
+   </operation>
+   <operation name="off" type="void" visibility="0x00" properties="0x00">
+    <code>this-&gt;ledOff(&quot;R&quot;);</code>
+   </operation>
+  </class>
+  <class name="LedY" superclass="AOs::Led">
+   <attribute name="inst" type="LedY" visibility="0x00" properties="0x01">
+    <code>;</code>
+   </attribute>
+   <attribute name="state" type="std::uint8_t" visibility="0x00" properties="0x00">
+    <code>= 0;</code>
+   </attribute>
+   <operation name="on" type="void" visibility="0x00" properties="0x00">
+    <code>this-&gt;ledOn(&quot;Y&quot;);</code>
+   </operation>
+   <operation name="off" type="void" visibility="0x00" properties="0x00">
+    <code>this-&gt;ledOff(&quot;Y&quot;);</code>
+   </operation>
+   <operation name="toggle" type="void" visibility="0x00" properties="0x00">
+    <code>this-&gt;ledToggle(&quot;Y&quot;,state);
+this-&gt;state ^=0x01;</code>
+   </operation>
+  </class>
+  <class name="LedG" superclass="AOs::Led">
+   <attribute name="inst" type="LedG" visibility="0x00" properties="0x01">
+    <code>;</code>
+   </attribute>
+   <operation name="on" type="void" visibility="0x00" properties="0x00">
+    <code>this-&gt;ledOn(&quot;G&quot;);</code>
+   </operation>
+   <operation name="off" type="void" visibility="0x00" properties="0x00">
+    <code>this-&gt;ledOff(&quot;G&quot;);</code>
+   </operation>
+  </class>
+  <class name="Button" superclass="qpcpp::QActive">
+   <attribute name="pullTimer" type="QP::QTimeEvt" visibility="0x00" properties="0x00"/>
+   <attribute name="key" type="char" visibility="0x00" properties="0x00">
+    <code>;</code>
+   </attribute>
+   <attribute name="inst" type="APP::Button" visibility="0x00" properties="0x01">
+    <code>;</code>
+   </attribute>
+   <attribute name="PULL_TOUT" type="std::int16_t" visibility="0x00" properties="0x00">
+    <code>= 10;</code>
+   </attribute>
+   <operation name="Button" type="" visibility="0x00" properties="0x00">
+    <code>: QActive(Q_STATE_CAST(&amp;Button::initial)),
+    pullTimer(this, PULL_BUTTON_SIG, 0U)
+</code>
+   </operation>
+   <statechart properties="0x00">
+    <initial target="../1">
+     <action brief="armx">pullTimer.armX(this-&gt;PULL_TOUT, this-&gt;PULL_TOUT);
+(void)e; // unused parameter</action>
+     <initial_glyph conn="11,6,5,0,6,7">
+      <action box="0,-2,11,4"/>
+     </initial_glyph>
+    </initial>
+    <state name="pulling">
+     <tran trig="PULL_BUTTON">
+      <action brief="pull">this-&gt;key = QP::QF::consoleGetKey();
+switch(this-&gt;key) {
+   case ' ':
+    {
+     std::cout&lt;&lt; &quot;[BUTTON]&quot; &lt;&lt; std::endl;
+     APP::TrafficEvt* evt = Q_NEW(APP::TrafficEvt, BUTTON_SIG);
+     evt-&gt;key=this-&gt;key;
+     APP::Traffic::inst.POST(evt,this);
+    }
+    break;
+  case 'q':
+    {
+     std::cout&lt;&lt; &quot;[INACTIVE]&quot; &lt;&lt; std::endl;
+     APP::TrafficEvt* evt = Q_NEW(APP::TrafficEvt, INACTIVE_SIG);
+     evt-&gt;key=this-&gt;key;
+     APP::Traffic::inst.POST(evt,this);
+    }
+  break;
+  case 'r':
+    {
+     std::cout&lt;&lt; &quot;[RESUME]&quot; &lt;&lt; std::endl;
+     APP::TrafficEvt* evt = Q_NEW(APP::TrafficEvt, RESUME_SIG);
+     evt-&gt;key=this-&gt;key;
+     APP::Traffic::inst.POST(evt,this);
+    }
+  break;
+  case 'p':
+    {
+     std::cout&lt;&lt; &quot;[BUTTON PUBLISH]&quot; &lt;&lt; std::endl;
+     APP::TrafficEvt* evt = Q_NEW(APP::TrafficEvt, BUTTON_SIG);
+     evt-&gt;key=this-&gt;key;
+     QP::QActive::PUBLISH(evt,nullptr);
+    }
+    break;
+  default:
+   break;
+}</action>
+      <tran_glyph conn="11,19,3,-1,31">
+       <action box="0,-2,18,3"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="11,13,36,17"/>
+    </state>
+    <state_diagram size="53,38"/>
+   </statechart>
+  </class>
+  <class name="TrafficEvt" superclass="qpcpp::QEvt">
+   <attribute name="key" type="int" visibility="0x00" properties="0x00">
+    <code>;</code>
+   </attribute>
+   <operation name="TrafficEvt" type="" visibility="0x00" properties="0x00">
+    <parameter name="sig" type="QP::QSignal"/>
+    <code> : QP::QEvt(sig)</code>
+   </operation>
+  </class>
+ </package>
+ <directory name=".">
+  <file name="qp_config.hpp">
+   <text>//============================================================================
+// QP configuration file (host with console)
+//
+// Copyright (C) 2005 Quantum Leaps, LLC. All rights reserved.
+//
+//                   Q u a n t u m  L e a P s
+//                   ------------------------
+//                   Modern Embedded Software
+//
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-QL-commercial
+//
+// This software is dual-licensed under the terms of the open-source GNU
+// General Public License (GPL) or under the terms of one of the closed-
+// source Quantum Leaps commercial licenses.
+//
+// Redistributions in source code must retain this top-level comment block.
+// Plagiarizing this software to sidestep the license obligations is illegal.
+//
+// NOTE:
+// The GPL (see &lt;www.gnu.org/licenses/gpl-3.0&gt;) does NOT permit the
+// incorporation of the QP/C software into proprietary programs. Please
+// contact Quantum Leaps for commercial licensing options, which expressly
+// supersede the GPL and are designed explicitly for licensees interested
+// in using QP/C in closed-source proprietary applications.
+//
+// Quantum Leaps contact information:
+// &lt;www.state-machine.com/licensing&gt;
+// &lt;info@state-machine.com&gt;
+//============================================================================
+#ifndef QP_CONFIG_HPP_
+#define QP_CONFIG_HPP_
+
+//-------- &lt;&lt;&lt; Use Configuration Wizard in Context Menu &gt;&gt;&gt; -----------------
+
+// &lt;o&gt;QP API compatibility version (QP_API_VERSION)
+//   &lt;0=&gt;  0   (Maximum compatibility)
+//   &lt;691=&gt;691 (QP 6.9.1 or newer)
+//   &lt;734=&gt;7.3.4 (QP 7.3.4 or newer)
+//   &lt;9999=&gt;9999 (Latest only)
+// &lt;i&gt;QP API backwards compatibility with the QP/C API version.
+// &lt;i&gt;Lower QP_API_VERSION values enable backwards compatibility
+// &lt;i&gt;with lower (older) QP API versions.
+// &lt;i&gt;For example, QP_API_VERSION==691 will enable the compatibility
+// &lt;i&gt;layer with QP version 6.9.1 and newer, but not older than 6.9.1.
+// &lt;i&gt;QP_API_VERSION==0 enables the maximum currently supported
+// &lt;i&gt;backwards compatibility. Conversely, QP_API_VERSION==9999 means
+// &lt;i&gt;that no backwards compatibility layer should be enabled.
+// &lt;i&gt;Default: 0 (All supported)
+#define QP_API_VERSION 0
+
+//..........................................................................
+// &lt;h&gt;QP Functional Safety (FuSa) Subsystem (Q_UNSAFE)
+// &lt;i&gt;The QP FuSa Subsystem consists of the following facilities:
+// &lt;i&gt;- Software assertions as a recommended technique
+// &lt;i&gt;  (called Failure Assertion Programming (FAP) in IEC 61508)
+// &lt;i&gt;- Software Self-Monitoring (SSM), which encompasses such techniques:
+// &lt;i&gt;  * Duplicate Inverse Storage for critical variables
+// &lt;i&gt;  * Memory Markers for critical objects (e.g., events)
+// &lt;i&gt;  * Hard-limits for all loops
+// &lt;i&gt;  * Memory Isolation by means of Memory Protection Unit (MPU)
+
+// &lt;c3&gt;Disable QP FuSa in development (NOT recommended)
+// &lt;i&gt;Disable assertions and other self monitoring features
+// &lt;i&gt;in development build configurations (NDEBUG undefined).
+// &lt;i&gt;NOTE: Disabling safety *violates* functional safety standards.
+//#ifndef NDEBUG
+//#define Q_UNSAFE
+//#endif
+// &lt;/c&gt;
+
+// &lt;c3&gt;Disable QP FuSa in production release (NOT recommended)
+// &lt;i&gt;Disable assertions and other safety features
+// &lt;i&gt;in the release build configurations (NDEBUG defined).
+// &lt;i&gt;NOTE: Disabling safety *violates* functional safety standards.
+//#ifdef NDEBUG
+//#define Q_UNSAFE
+//#endif
+// &lt;/c&gt;
+
+// &lt;/h&gt;
+
+//..........................................................................
+// &lt;h&gt;QEP Event Processor (Events)
+// &lt;i&gt;Events and state machines.
+
+// &lt;o&gt;Event signal size (Q_SIGNAL_SIZE)
+//   &lt;1U=&gt;1
+//   &lt;2U=&gt;2 (default)
+//   &lt;4U=&gt;4
+// &lt;i&gt;Size of the QEvt signal for QEP/QF [bytes]
+// &lt;i&gt;Default: 2
+#define Q_SIGNAL_SIZE  2U
+
+// &lt;/h&gt;
+
+//..........................................................................
+// &lt;h&gt;QF Framework (Active Objects)
+// &lt;i&gt;Active Object framework
+
+// &lt;o&gt;Maximum # Active Objects (QF_MAX_ACTIVE) &lt;1-64&gt;
+// &lt;i&gt;Maximum # Active Objects in the system &lt;1..64&gt;
+// &lt;i&gt;Default: 32
+#define QF_MAX_ACTIVE  64U
+
+// &lt;o&gt;Maximum # event pools (QF_MAX_EPOOL)
+// &lt;0=&gt;0 no event pools
+// &lt;1=&gt;1 &lt;2=&gt;2 &lt;3=&gt;3 (default) &lt;4=&gt;4 &lt;5=&gt;5
+// &lt;6=&gt;6 &lt;7=&gt;7 &lt;8=&gt;8 &lt;9=&gt;9 &lt;10=&gt;10 &lt;11=&gt;11
+// &lt;12=&gt;12 &lt;13=&gt;13 &lt;14=&gt;14 &lt;15=&gt;15
+// &lt;i&gt;Maximum # Event Pools &lt;1..15&gt;
+// &lt;i&gt;Default: 3
+#define QF_MAX_EPOOL 3U
+
+// &lt;o&gt;Maximum # clock tick rates (QF_MAX_TICK_RATE)
+// &lt;0=&gt;0 no time events
+// &lt;1=&gt;1 (default) &lt;2=&gt;2 &lt;3=&gt;3 &lt;4=&gt;4 &lt;5=&gt;5
+// &lt;6=&gt;6 &lt;7=&gt;7 &lt;8=&gt;8 &lt;9=&gt;9 &lt;10=&gt;10 &lt;11=&gt;11
+// &lt;12=&gt;12 &lt;13=&gt;13 &lt;14=&gt;14 &lt;15=&gt;15
+// &lt;i&gt;Maximum # clock tick rates for time events &lt;1..15&gt;
+// &lt;i&gt;Default: 1
+#define QF_MAX_TICK_RATE 2U
+
+// &lt;o&gt;Event size (QF_EVENT_SIZ_SIZE)
+//   &lt;1U=&gt;1
+//   &lt;2U=&gt;2 (default)
+//   &lt;4U=&gt;4
+// &lt;i&gt;Size of the dynamic events for QF [bytes]
+// &lt;i&gt;Default: 2 (64K bytes maximum event size)
+#define QF_EVENT_SIZ_SIZE   2U
+
+// &lt;o&gt;Time event counter size (QF_TIMEEVT_CTR_SIZE)
+//   &lt;1U=&gt;1
+//   &lt;2U=&gt;2
+//   &lt;4U=&gt;4 (default)
+// &lt;i&gt;Size of the QTimeEvt counter [bytes]
+// &lt;i&gt;Default: 4 (2^32 dynamic range)
+#define QF_TIMEEVT_CTR_SIZE 4U
+
+// &lt;o&gt;Event queue counter size (QF_EQUEUE_CTR_SIZE)
+//   &lt;1U=&gt;1 (default)
+//   &lt;2U=&gt;2
+// &lt;i&gt;Size of event queue counter [bytes]
+// &lt;i&gt;Default: 1 (255 events maximum in a queue)
+#define QF_EQUEUE_CTR_SIZE  2U
+
+// &lt;o&gt;Memory pool counter size (QF_MPOOL_CTR_SIZE)
+//   &lt;1U=&gt;1
+//   &lt;2U=&gt;2 (default)
+//   &lt;4U=&gt;4
+// &lt;i&gt;Size of memory pool counter [bytes]
+// &lt;i&gt;Default: 2 (64K blocks maximum in a pool)
+#define QF_MPOOL_CTR_SIZE 2U
+
+// &lt;o&gt;Memory block size (QF_MPOOL_SIZ_SIZE)
+//   &lt;1U=&gt;1
+//   &lt;2U=&gt;2 (default)
+//   &lt;4U=&gt;4
+// &lt;i&gt;Size of memory pool block [bytes]
+// &lt;i&gt;Default: 2 (64K bytes maximum block size)
+#define QF_MPOOL_SIZ_SIZE 2U
+
+// &lt;c2&gt;Enable event parameter initialization (QEVT_PAR_INIT)
+// &lt;i&gt;Initialize parameters of dynamic events at allocation
+// &lt;i&gt;(Resource Acquisition Is Initialization (RAII) for dynamic events)
+//#define QEVT_PAR_INIT
+// &lt;/c&gt;
+
+// &lt;c1&gt;Provide destructors for QP classes
+// &lt;i&gt;Presence of destructors pulls in the C++ delete() opeator
+// &lt;i&gt;NOTE: Not recommended
+//#define Q_XTOR
+// &lt;/c&gt;
+
+// &lt;c1&gt;Enable active object stop API (QACTIVE_CAN_STOP)
+// &lt;i&gt;NOTE: Not recommended
+#define QACTIVE_CAN_STOP
+// &lt;/c&gt;
+
+// &lt;c1&gt;Enable context switch callback *without* QS (QF_ON_CONTEXT_SW)
+// &lt;i&gt;Context switch callback QF_onContextSw() when Q_SPY is undefined.
+//#ifndef Q_SPY
+//#define QF_ON_CONTEXT_SW
+//#endif
+// &lt;/c&gt;
+
+// &lt;c1&gt;Enable context switch callback *with* QS (QF_ON_CONTEXT_SW)
+// &lt;i&gt;Context switch callback QF_onContextSw() when Q_SPY is defined.
+//#ifdef Q_SPY
+//#define QF_ON_CONTEXT_SW
+//#endif
+// &lt;/c&gt;
+
+// &lt;c2&gt;Enable memory isolation (QF_MEM_ISOLATE)
+// &lt;i&gt;Memory isolation (supported in SafeQP only, requires MPU)
+// &lt;i&gt;NOTE: implies QF_ON_CONTEXT_SW.
+//#define QF_MEM_ISOLATE
+// &lt;/c&gt;
+
+// &lt;/h&gt;
+
+//..........................................................................
+// &lt;h&gt;QS Software Tracing (Q_SPY)
+// &lt;i&gt;Target-resident component of QP/Spy software tracing system
+// &lt;i&gt;(tracing instrumentation and command-input).
+// &lt;i&gt;NOTE: The QS software tracing instrumentation is activated only when
+// &lt;i&gt;the macro Q_SPY is defined on the command-line to the compiler.
+// &lt;i&gt;Typically, Q_SPY is defined only in the &quot;spy&quot; build configuration.
+
+// &lt;o&gt;QS timestamp size (QS_TIME_SIZE)
+//   &lt;1U=&gt;1
+//   &lt;2U=&gt;2
+//   &lt;4U=&gt;4 (default)
+// &lt;i&gt;Size of the timestamp in QS [bytes]
+// &lt;i&gt;Default: 4 (2^32 dynamic range)
+#define QS_TIME_SIZE 4U
+
+// &lt;o&gt;QS buffer counter size (QS_CTR_SIZE)
+//   &lt;1U=&gt;1
+//   &lt;2U=&gt;2 (default)
+//   &lt;4U=&gt;4
+// &lt;i&gt;Size of the counter in the internal QS buffer [bytes]
+// &lt;i&gt;Default: 2 (64K bytes in QS buffer)
+#define QS_CTR_SIZE 2U
+
+// &lt;/h&gt;
+
+//------------- &lt;&lt;&lt; end of configuration section &gt;&gt;&gt; -----------------------
+
+// Activate the QF console access
+#define QF_CONSOLE
+
+#endif // QP_CONFIG_HPP_
+</text>
+  </file>
+  <file name="main.cpp">
+   <text>#include &quot;qpcpp.hpp&quot;             // QP/C++ real-time embedded framework
+#include &lt;iostream&gt;
+
+extern &quot;C&quot; {
+//............................................................................
+void Q_onError(char const * const module, int id) {std::cerr &lt;&lt; &quot;Assertion failed in &quot; &lt;&lt; module &lt;&lt; ':' &lt;&lt; id &lt;&lt; std::endl;exit(-1);}
+void assert_failed(char const * const module, int_t const id); // prototype
+void assert_failed(char const * const module, int_t const id) {Q_onError(module, id);}
+} // extern &quot;C&quot;
+
+namespace QP {
+void QF::onStartup  (    ) {QF::consoleSetup();}
+void QF::onCleanup  (void) {QF::consoleCleanup();}
+void QF::onClockTick(void) {QTimeEvt::TICK_X(0U, nullptr);}  // QTimeEvt clock tick processing
+} // namespace QP
+
+enum colorTimes : uint32_t {
+   COLOR_R_TIME = 500,
+   COLOR_R_USER_TIME = 3000,
+   COLOR_Y_TIME = 300,
+   COLOR_G_TIME = 2000,
+   PRINT_TIME = 100,
+   COLOR_Y_INACTIVE_TIME= 50,
+};
+
+enum AppSignals : QP::QSignal
+{
+  PUB1_SIG = QP::Q_USER_SIG, // first valid signal
+ 
+  TOUT_SIG,
+  PULL_BUTTON_SIG,
+  BUTTON_SIG,
+  PRINT_SIG,
+  RESUME_SIG,
+  INACTIVE_SIG,
+  MAX_PUB_SIG,
+  MAX_SIG,                       // the last signal
+};
+
+$declare ${AOs::Led}
+$declare ${AOs::LedR}
+$declare ${AOs::LedY}
+$declare ${AOs::LedG}
+$declare ${AOs::Button}
+$declare ${AOs::Traffic}
+$declare ${AOs::TrafficEvt}
+
+$define ${AOs::Led}
+$define ${AOs::LedR}
+$define ${AOs::LedY}
+$define ${AOs::LedG}
+$define ${AOs::Button}
+$define ${AOs::Traffic}
+$define ${AOs::TrafficEvt}
+int main()
+{
+    QP::QF::init();  // initialize the framework and the underlying RT kernel
+
+    // initialize event pools
+    static QF_MPOOL_EL(APP::TrafficEvt) poolSto[10];
+    QP::QF::poolInit(poolSto, sizeof(poolSto), sizeof(poolSto[0]));
+
+    // initialize publish-subscribe
+    static QP::QSubscrList subscrSto[MAX_PUB_SIG];
+    QP::QActive::psInit(subscrSto, Q_DIM(subscrSto));
+
+    QP::QEvt const *trafficQueueSto[10];
+    APP::Traffic::inst.start(
+        1U,                          // QP prio. of the AO
+        trafficQueueSto,             // event queue storage
+        Q_DIM(trafficQueueSto),      // queue length [events]
+        nullptr, 0U);                // no stack storage
+
+    QP::QEvt const *buttonQueueSto[10];
+    APP::Button::inst.start(
+        2U,
+        buttonQueueSto,
+        Q_DIM(buttonQueueSto),
+        nullptr, 0U);
+
+    return QP::QF::run(); // run the QF application
+}</text>
+  </file>
+  <file name="Makefile">
+   <text>##############################################################################
+#
+# examples of invoking this Makefile:
+# building configurations: Debug (default), Release, and Spy
+# make
+# make CONF=rel
+# make CONF=spy
+# make clean   # cleanup the build
+# make CONF=spy clean   # cleanup the build
+#
+# NOTE:
+# To use this Makefile on Windows, you will need the GNU make utility, which
+# is included in the QTools collection for Windows, see:
+#    https://github.com/QuantumLeaps/qtools
+#
+
+#-----------------------------------------------------------------------------
+# project name:
+#
+PROJECT := sem
+
+#-----------------------------------------------------------------------------
+# project directories:
+#
+
+# list of all source directories used by this project
+VPATH := . \
+
+# list of all include directories needed by this project
+INCLUDES := -I. \
+
+# location of the QP/C++ framework (if not provided in an env. variable)
+ifeq ($(QPCPP),)
+QPCPP := /opt/qp-bundle/qpcpp
+endif
+
+#-----------------------------------------------------------------------------
+# project files:
+#
+
+# C source files...
+C_SRCS :=
+
+# C++ source files...
+CPP_SRCS := \
+    main.cpp
+
+LIB_DIRS :=
+LIBS     :=
+
+# defines...
+# QP_API_VERSION controls the QP API compatibility; 9999 means the latest API
+DEFINES   := $(DEF)
+
+ifeq (,$(CONF))
+    CONF := dbg
+endif
+
+#-----------------------------------------------------------------------------
+# add QP/C++ framework:
+#
+CPP_SRCS += \
+    qep_hsm.cpp \
+    qep_msm.cpp \
+    qf_act.cpp \
+    qf_actq.cpp \
+    qf_defer.cpp \
+    qf_dyn.cpp \
+    qf_mem.cpp \
+    qf_ps.cpp \
+    qf_qact.cpp \
+    qf_qeq.cpp \
+    qf_qmact.cpp \
+    qf_time.cpp \
+    qf_port.cpp
+
+# C++ QS source files
+QS_SRCS := \
+    qs.cpp \
+    qs_rx.cpp \
+    qs_fp.cpp \
+    qs_64bit.cpp \
+    qs_port.cpp
+
+ifeq ($(OS),Windows_NT)
+
+# NOTE:
+# For Windows hosts, you can choose:
+# - the single-threaded QP/C++ port (win32-qv) or
+# - the multithreaded QP/C++ port (win32).
+#
+QP_PORT_DIR := $(QPCPP)/ports/win32-qv
+#QP_PORT_DIR := $(QPCPP)/ports/win32
+LIBS += -lws2_32
+
+else
+
+# NOTE:
+# For POSIX hosts (Linux, MacOS), you can choose:
+# - the single-threaded QP/C++ port (win32-qv) or
+# - the multithreaded QP/C++ port (win32).
+#
+QP_PORT_DIR := $(QPCPP)/ports/posix-qv
+#QP_PORT_DIR := $(QPCPP)/ports/posix
+
+LIBS += -lpthread
+
+endif
+
+#============================================================================
+# Typically you should not need to change anything below this line
+
+VPATH    += $(QPCPP)/src/qf $(QP_PORT_DIR)
+INCLUDES += -I$(QPCPP)/include -I$(QP_PORT_DIR)
+
+#-----------------------------------------------------------------------------
+# GNU toolset:
+#
+# NOTE:
+# GNU toolset (MinGW) is included in the QTools collection for Windows, see:
+#     https://github.com/QuantumLeaps/qtools
+# It is assumed that $(QTOOLS)/bin directory is added to the PATH
+#
+CC    := gcc
+CPP   := g++
+#LINK  := gcc    # for C programs
+LINK  := g++   # for C++ programs
+
+#-----------------------------------------------------------------------------
+# basic utilities (depends on the OS this Makefile runs on):
+#
+ifeq ($(OS),Windows_NT)
+    MKDIR      := mkdir
+    RM         := rm
+    TARGET_EXT := .exe
+else ifeq ($(OSTYPE),cygwin)
+    MKDIR      := mkdir -p
+    RM         := rm -f
+    TARGET_EXT := .exe
+else
+    MKDIR      := mkdir -p
+    RM         := rm -f
+    TARGET_EXT :=
+endif
+
+#-----------------------------------------------------------------------------
+# build configurations...
+
+ifeq (rel, $(CONF)) # Release configuration ..................................
+
+BIN_DIR := build_rel
+# gcc options:
+CFLAGS  = -c -O3 -fno-pie -std=c11 -pedantic -Wall -Wextra -W \
+    $(INCLUDES) $(DEFINES) -DNDEBUG
+
+CPPFLAGS = -c -O3 -fno-pie -std=c++11 -pedantic -Wall -Wextra \
+    -fno-rtti -fno-exceptions \
+    $(INCLUDES) $(DEFINES) -DNDEBUG
+
+else ifeq (spy, $(CONF))  # Spy configuration ................................
+
+BIN_DIR := build_spy
+
+CPP_SRCS += $(QS_SRCS)
+VPATH    += $(QPCPP)/src/qs
+
+# gcc options:
+CFLAGS  = -c -g -O -fno-pie -std=c11 -pedantic -Wall -Wextra -W \
+    $(INCLUDES) $(DEFINES) -DQ_SPY
+
+CPPFLAGS = -c -g -O -fno-pie -std=c++11 -pedantic -Wall -Wextra \
+    -fno-rtti -fno-exceptions \
+    $(INCLUDES) $(DEFINES) -DQ_SPY
+
+else # default Debug configuration .........................................
+
+BIN_DIR := build
+
+# gcc options:
+CFLAGS  = -c -g -O -fno-pie -std=c11 -pedantic -Wall -Wextra -W \
+    $(INCLUDES) $(DEFINES)
+
+CPPFLAGS = -c -g -O -fno-pie -std=c++11 -pedantic -Wall -Wextra \
+    -fno-rtti -fno-exceptions \
+    $(INCLUDES) $(DEFINES)
+
+endif  # .....................................................................
+
+ifndef GCC_OLD
+    LINKFLAGS := -no-pie
+endif
+
+#-----------------------------------------------------------------------------
+C_OBJS       := $(patsubst %.c,%.o,   $(C_SRCS))
+CPP_OBJS     := $(patsubst %.cpp,%.o, $(CPP_SRCS))
+
+TARGET_EXE   := $(BIN_DIR)/$(PROJECT)$(TARGET_EXT)
+C_OBJS_EXT   := $(addprefix $(BIN_DIR)/, $(C_OBJS))
+C_DEPS_EXT   := $(patsubst %.o,%.d, $(C_OBJS_EXT))
+CPP_OBJS_EXT := $(addprefix $(BIN_DIR)/, $(CPP_OBJS))
+CPP_DEPS_EXT := $(patsubst %.o,%.d, $(CPP_OBJS_EXT))
+
+# create $(BIN_DIR) if it does not exist
+ifeq (&quot;$(wildcard $(BIN_DIR))&quot;,&quot;&quot;)
+$(shell $(MKDIR) $(BIN_DIR))
+endif
+
+#-----------------------------------------------------------------------------
+# rules
+#
+
+.PHONY: clean show
+
+all: $(TARGET_EXE)
+
+$(TARGET_EXE) : $(C_OBJS_EXT) $(CPP_OBJS_EXT)
+    $(CPP) $(CPPFLAGS) $(QPCPP)/src/qs/qstamp.cpp -o $(BIN_DIR)/qstamp.o
+    $(LINK) $(LINKFLAGS) $(LIB_DIRS) -o $@ $^ $(BIN_DIR)/qstamp.o $(LIBS)
+
+$(BIN_DIR)/%.d : %.c
+    $(CC) -MM -MT $(@:.d=.o) $(CFLAGS) $&lt; &gt; $@
+
+$(BIN_DIR)/%.d : %.cpp
+    $(CPP) -MM -MT $(@:.d=.o) $(CPPFLAGS) $&lt; &gt; $@
+
+$(BIN_DIR)/%.o : %.c
+    $(CC) $(CFLAGS) $&lt; -o $@
+
+$(BIN_DIR)/%.o : %.cpp
+    $(CPP) $(CPPFLAGS) $&lt; -o $@
+
+# create BIN_DIR and include dependencies only if needed
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),show)
+ifneq ($(MAKECMDGOALS),debug)
+ ifeq (&quot;$(wildcard $(BIN_DIR))&quot;,&quot;&quot;)
+  $(shell $(MKDIR) $(BIN_DIR))
+ endif
+ -include $(C_DEPS_EXT) $(CPP_DEPS_EXT)
+endif
+endif
+endif
+
+clean :
+    -$(RM) $(BIN_DIR)/*.o \
+    $(BIN_DIR)/*.d \
+    $(TARGET_EXE)
+
+show :
+    @echo PROJECT      = $(PROJECT)
+    @echo TARGET_EXE   = $(TARGET_EXE)
+    @echo VPATH        = $(VPATH)
+    @echo C_SRCS       = $(C_SRCS)
+    @echo CPP_SRCS     = $(CPP_SRCS)
+    @echo C_DEPS_EXT   = $(C_DEPS_EXT)
+    @echo C_OBJS_EXT   = $(C_OBJS_EXT)
+    @echo C_DEPS_EXT   = $(C_DEPS_EXT)
+    @echo CPP_DEPS_EXT = $(CPP_DEPS_EXT)
+    @echo CPP_OBJS_EXT = $(CPP_OBJS_EXT)
+    @echo LIB_DIRS     = $(LIB_DIRS)
+    @echo LIBS         = $(LIBS)
+    @echo DEFINES      = $(DEFINES)
+</text>
+  </file>
+ </directory>
+</model>

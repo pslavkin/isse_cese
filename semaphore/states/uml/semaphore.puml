@@ -1,0 +1,305 @@
+/' 
+====================================================================
+TUTORIAL: CONSTRUYENDO UNA MÁQUINA DE ESTADOS DE SEMÁFORO EN PLANTUML
+====================================================================
+Este archivo contiene 7 pasos. Cada paso introduce nuevos conceptos de 
+UML y sintaxis de PlantUML, construyendo gradualmente el diagrama final.
+'/
+
+
+/' 
+====================================================================
+PASO 1: Conceptos Básicos - Estados Simples y el Pseudo-estado Inicial
+====================================================================
+CONCEPTO UML: 
+- Estado (State): Representa una condición o situación durante la vida de un objeto.
+- Pseudo-estado Inicial: El punto de partida de la máquina de estados (el círculo negro sólido).
+
+PALABRAS CLAVE DE PLANTUML:
+- @startuml / @enduml: Requeridos para iniciar y finalizar un diagrama.
+- state: Define un estado.
+- [*]: Representa el pseudo-estado inicial (o final).
+- -->: Crea una transición (flecha) entre estados.
+'/
+@startuml
+title Paso 1: Estados Básicos
+
+[*] --> R
+
+state R
+state YtoG
+state G
+state YtoR
+
+@enduml
+
+
+/' 
+====================================================================
+PASO 2: Transiciones de Estado y Disparadores (Eventos)
+====================================================================
+CONCEPTO UML: 
+- Transición: El movimiento de un estado a otro.
+- Disparador/Evento (Trigger): El suceso que causa la transición (ej. un tiempo de espera o "TOUT").
+
+PALABRAS CLAVE DE PLANTUML:
+- : (dos puntos): Se usa después de una flecha para etiquetar la transición con el evento que la dispara.
+'/
+@startuml
+title Paso 2: Transiciones y Disparadores
+
+[*] --> R
+
+R --> YtoG : TOUT
+YtoG --> G : TOUT
+G --> YtoR : TOUT
+YtoR --> R : TOUT
+
+@enduml
+
+
+/' 
+====================================================================
+PASO 3: Comportamientos Internos (Acciones de Entrada y Salida)
+====================================================================
+CONCEPTO UML: 
+- Acción de Entrada (e /): Código o comportamiento que se ejecuta exactamente al entrar al estado.
+- Acción de Salida (x /): Código o comportamiento que se ejecuta exactamente al salir del estado.
+
+PALABRAS CLAVE DE PLANTUML:
+- { } (llaves): Se usan para abrir un bloque de estado y definir sus detalles internos.
+- Formato de texto: Puedes escribir las acciones directamente dentro del bloque del estado como texto plano.
+'/
+@startuml
+title Paso 3: Acciones de Entrada y Salida
+
+[*] --> R
+
+state R {
+  R : e / inst.ledR.on();
+  R : if(APP::Traffic::inst.buttonPressed)
+  R : x / inst.ledR.off(); 
+  R : APP::Traffic::inst.buttonPressed=0;
+  R : std::cout << "button released" << std::endl;
+}
+
+state YtoG {
+  YtoG : e / inst.ledY.on();
+  YtoG : x / inst.ledY.off();
+}
+
+state G {
+  G : e / inst.ledG.on();
+  G : x / inst.ledG.off();
+}
+
+state YtoR {
+  YtoR : e / inst.ledY.on();
+  YtoR : x / inst.ledY.off();
+}
+
+R --> YtoG : TOUT
+YtoG --> G : TOUT
+G --> YtoR : TOUT
+YtoR --> R : TOUT
+
+@enduml
+
+
+/' 
+====================================================================
+PASO 4: Estados Compuestos (Anidamiento)
+====================================================================
+CONCEPTO UML: 
+- Estado Compuesto: Un estado que contiene otros sub-estados. Ayuda a manejar la complejidad. Si se transita fuera de un estado compuesto, se sale del sub-estado que esté activo en ese momento.
+
+PALABRAS CLAVE DE PLANTUML:
+- state "Nombre" { ... }: Envolver estados existentes dentro del bloque de un estado padre crea automáticamente un estado compuesto.
+'/
+@startuml
+title Paso 4: Estado Compuesto (root)
+
+[*] --> root : / initial
+
+state root {
+  [*] --> R
+  
+  state R {
+    R : e / inst.ledR.on();
+    R : x / inst.ledR.off(); 
+  }
+  state YtoG {
+    YtoG : e / inst.ledY.on();
+    YtoG : x / inst.ledY.off();
+  }
+  state G {
+    G : e / inst.ledG.on();
+    G : x / inst.ledG.off();
+  }
+  state YtoR {
+    YtoR : e / inst.ledY.on();
+    YtoR : x / inst.ledY.off();
+  }
+
+  R --> YtoG : TOUT
+  YtoG --> G : TOUT
+  G --> YtoR : TOUT
+  YtoR --> R : TOUT
+}
+@enduml
+
+
+/' 
+====================================================================
+PASO 5: Estados Hermanos y Transiciones de Alto Nivel
+====================================================================
+CONCEPTO UML: 
+- Podemos tener transiciones de alto nivel entre estados compuestos y otros estados de nivel superior.
+- Cuando ocurre el evento 'INACTIVE', no importa si la luz es Roja, Verde o Amarilla; todo el estado 'root' transita al estado 'inactive'.
+
+PALABRAS CLAVE DE PLANTUML:
+- Simplemente conecta el nombre del estado padre (`root`) con el nuevo estado (`inactive`).
+'/
+@startuml
+title Paso 5: Transiciones de Alto Nivel
+
+state root {
+  [*] --> R
+  state R
+  state YtoG
+  state G
+  state YtoR
+  R --> YtoG : TOUT
+  YtoG --> G : TOUT
+  G --> YtoR : TOUT
+  YtoR --> R : TOUT
+}
+
+state inactive {
+  inactive : e / \nstd::cout << "inactive state"\n<< std::endl;
+}
+
+root --> inactive : INACTIVE
+inactive --> root : RESUME
+
+@enduml
+
+
+/' 
+====================================================================
+PASO 6: Transiciones Internas (Manejo de eventos sin salir del estado)
+====================================================================
+CONCEPTO UML: 
+- En la imagen original, hay líneas rojas etiquetadas "BUTTON/" y "PRINT/" que apuntan a pequeños cuadrados en blanco. En UML/PlantUML estándar, si un evento es manejado pero no transita a un *nuevo* estado, es una "Transición Interna".
+- Las representamos como texto dentro del estado: `Evento / Acción`.
+
+PALABRAS CLAVE DE PLANTUML:
+- Se manejan de forma textual dentro de la definición del estado, igual que las acciones de entrada/salida.
+'/
+@startuml
+title Paso 6: Transiciones Internas (Reemplazando los "Cuadraditos")
+
+state root {
+  [*] --> R
+  
+  ' Manejo de PRINT y BUTTON a alto nivel internamente
+  root : BUTTON / 
+  root : PRINT /
+  
+  state R {
+    R : e / inst.ledR.on();
+    R : x / inst.ledR.off(); 
+    R : BUTTON / 
+  }
+  
+  state G {
+    G : e / inst.ledG.on();
+    G : x / inst.ledG.off();
+    G : BUTTON /
+  }
+  
+  ' Estados Y abreviados por espacio
+  state YtoG
+  state YtoR
+
+  R --> YtoG : TOUT
+  YtoG --> G : TOUT
+  G --> YtoR : TOUT
+  YtoR --> R : TOUT
+}
+
+state inactive {
+  inactive : e / ...
+  inactive : TOUT /
+  inactive : PRINT /
+}
+@enduml
+
+
+/' 
+====================================================================
+PASO 7: El Diagrama Final (Estilo e Integración de Código Completo)
+====================================================================
+CONCEPTO UML: 
+- La representación visual completa combinando estados, estados anidados, acciones, transiciones internas y enrutamiento de alto nivel.
+
+PALABRAS CLAVE DE PLANTUML:
+- #NombreColor: Se añade después del nombre de un estado para cambiar su color de fondo (ej. #LightCoral para el Rojo).
+- skinparam: Permite cambios de estilo globales (como cambiar el color de las flechas a rojo para que coincida con la imagen).
+- \n : Se utiliza para crear saltos de línea en cadenas de código C++ largas.
+'/
+@startuml
+title Paso 7: Diagrama Final Completo del Semáforo
+
+' Estilos para coincidir con la imagen original
+skinparam ArrowColor Red
+skinparam StateBackgroundColor #LightBlue
+skinparam StateBorderColor DarkBlue
+
+[*] -down-> root : / initial
+
+state root {
+  [*] -down-> R
+  
+  ' Transiciones internas a nivel del grupo (Los cuadrados en la imagen)
+  root : BUTTON /
+  root : PRINT /
+
+  state R #LightCoral {
+    R : e /\ninst.ledR.on();\nif(APP::Traffic::inst.buttonPressed) { ... }
+    R : x /\ninst.ledR.off();\nAPP::Traffic::inst.buttonPressed=0;\nstd::cout << "button released" << std::endl;
+    R : BUTTON /
+  }
+
+  state YtoG #LightGray {
+    YtoG : e /\ninst.ledY.on();\nAPP::Traffic::inst.colorTimeEvt.rearm(COLOR_Y_TIME);
+    YtoG : x /\ninst.ledY.off();
+  }
+
+  state G #LightGreen {
+    G : e /\ninst.ledG.on();\nAPP::Traffic::inst.colorTimeEvt.rearm(COLOR_G_TIME);
+    G : x /\ninst.ledG.off();
+    G : BUTTON /
+  }
+
+  state YtoR #LightGray {
+    YtoR : e /\ninst.ledY.on();\nAPP::Traffic::inst.colorTimeEvt.rearm(COLOR_Y_TIME);
+    YtoR : x /\ninst.ledY.off();
+  }
+
+  R -right-> YtoG : TOUT
+  YtoG -right-> G : TOUT
+  G -down-> YtoR : TOUT
+  YtoR -left-> R : TOUT
+}
+
+state inactive {
+  inactive : e /\nstd::cout << "inactive state"\n<< std::endl;
+  inactive : TOUT /
+  inactive : PRINT /
+}
+
+root -right-> inactive : INACTIVE
+inactive -left-> root : RESUME
+
+@enduml

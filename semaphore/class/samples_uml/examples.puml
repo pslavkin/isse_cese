@@ -1,0 +1,449 @@
+@startuml
+
+
+class App {
+   == attributes estaic ==
+   +myAttr: uint32_t
+   +myAttr: uint32_t
+   == metodos estaic ==
+   +myMethod(): void
+   +myMethod(): void
+   +myMethod(): void
+   +myMethod(): void
+}
+
+@enduml
+
+
+
+@startuml relationships
+
+left to right direction
+
+class A
+class B
+
+'dependency is a relationship where one class (the client) depends on another
+'class (the supplier) for its functionality. It indicates that the client class
+'uses or interacts with the supplier class, but it does not imply any ownership
+'or lifecycle management between the classes.
+
+'A ..>  B : depends on
+
+'note on link
+'the client class uses the supplier
+'class, but it does not imply any
+'ownership between the classes.
+'end note
+
+
+
+'association represents a relationship between two classes where one class uses
+'or interacts with another class. It is a more general relationship than
+'aggregation or composition, and it does not imply any ownership or lifecycle
+'management between the classes.
+
+'A -->  B : association
+
+'note on link
+'   it does not imply any ownership
+'   or lifecycle management between
+'   the classes.
+'end note
+
+
+'aggregation is a special form of association, it represents a "whole-part"
+'relationship between the aggregate (whole) and a component part. The aggregate
+'is responsible for the lifecycle of the component parts, but the component
+'parts can exist independently of the aggregate.
+
+'A o--  B : aggregation
+
+'note on link
+'   the component parts can exist
+'   independently of the aggregate.
+'end note
+
+'composition is a stronger form of aggregation, it represents a "whole-part"
+'relationship where the component parts are strongly owned by the aggregate. The
+'lifecycle of the component parts is tightly coupled to the lifecycle of the
+'aggregate, meaning that if the aggregate is destroyed, the component parts will
+'also be destroyed.
+
+'A *--  B : composition
+
+'note on link
+'   if the aggregate is destroyed,
+'   the component parts will also be
+'   destroyed.
+'end note
+
+'generalization is a relationship between a more general class (the parent or superclass) and a more specific class (the child or subclass). The child class
+'inherits the attributes and behaviors of the parent class, and it can also have
+'its own unique attributes and behaviors.
+
+'A <|-- B : generalization
+
+'note on link
+'   The child inherits the attributesof
+'   the parent, and it can also have
+'   its own unique attributes
+'end note
+
+@enduml
+
+@startuml mutliple_relationships
+
+left to right direction
+
+
+class A
+class B
+
+'
+
+'using the association relationship btw A and B show all the combination of
+'multiplicity
+'
+A "1" --> "1" B : one-to-one 
+A "1" --> "*" B : one-to-many
+A "1" --> "0..1" B : one to zero-or-one 
+A "1" --> "0..*" B : one to zero-or-many
+
+'A "*" --> "1" B : many-to-one 
+'A "*" --> "*" B : many-to-many 
+'A "0..1" --> "1" B : zero-or-one to one 
+'A "0..1" --> "0..1" B : zero-or-one to zero-or-one 
+'A "0..*" --> "1" B : zero-or-many to one 
+'A "0..*" --> "0..*" B : zero-or-many to zero-or-many
+
+@enduml
+
+@startuml notas
+
+class A
+class B
+
+'direction optionals: left, right, up, down
+A -down--> B
+
+note right of A
+   This is a note for class A.
+   It can span multiple lines.
+end note
+
+note bottom of B
+   This is a note for class B.
+   It can also span multiple lines.
+end note
+
+'association with a note
+note as extraNote
+   extra not as instance
+end note
+A .. extraNote
+
+@enduml
+
+@startuml attributes
+class A {
+   == attributes estaic ==
+   +publicAttribute: int
+   -privateAttribute: string
+   #protectedAttribute: float
+   == methods ==
+   +publicMethod(): void
+   -privateMethod(param: int): string
+   #protectedMethod(param1: int, param2: string): float
+   {static} +staticMethod(): void
+}
+'note bottom of A
+'   == is used to separate sections ==
+'
+'   : returnType is used to indicate the
+'   type of value that a method returns.
+'   If a method does not return any
+'   value, it can be specified as void
+'
+'   (param) is used to indicate that
+'   the method takes parameters, and
+'   the type of each parameter can also
+'   be specified.
+'end note
+@enduml
+
+@startuml relation_matrix
+
+
+left to right direction
+
+skinparam classAttributeIconSize 0
+hide circle
+
+class Base_public {
+  +public
+  #protected
+  -private
+}
+
+class Derived_public {
+  +public
+  #protected
+}
+
+class Base_protected {
+  +public
+  #protected
+  -private
+}
+
+class Derived_protected {
+  #protected
+}
+
+class Base_private {
+  +public
+  #protected
+  -private
+}
+
+class Derived_private {
+  -private
+}
+
+Base_public -right[#blue]-> Derived_public : <b><color:blue>public</color></b>
+note on link
+  public → public
+  protected → protected
+end note
+
+Base_protected -right[#green]-> Derived_protected : <b><color:green>protected</color></b>
+note on link
+  public → protected
+  protected → protected
+end note
+
+Base_private -right[#red]-> Derived_private : <b><color:red>private</color></b>
+note on link
+  public → private
+  protected → private
+end note
+
+@enduml
+
+class Base {
+   public: int pub;
+   protected: int prot;
+   private: int priv;
+};
+class DerivedPublic    : public    Base {
+/* pub->public,
+   prot->protected,
+   priv=hidden */
+};
+class DerivedProtected : protected Base {
+/* pub->protected
+   prot->protected
+   priv=hidden */
+};
+class DerivedPrivate   : private   Base {
+/* pub->private
+   prot->private
+   priv=hidden */
+};
+
+
+@startuml objects
+
+class A {
+  +pub
+  #prot
+}
+
+class B {
+  +pub
+}
+
+object "<u>myAobj</u>" as myAobj
+object "<u>myBobj</u>" as myBobj
+
+myAobj .up.|> A : instanceOf
+myBobj .up.|> B : instanceOf
+
+myAobj --> myBobj : association
+
+@enduml
+
+@startuml objets_underlined
+
+object "<u>myA</u> : A" as myA {
+   +state = 42
+   -count_ = 7
+}
+object " : B" as myB {
+  +temperature = 99
+}
+object "<u>myC</u>" as myC {
+  +count = 123
+}
+
+@enduml
+
+@startuml class_tpes
+left to right direction
+
+' abstract class — a class that cannot be instantiated directly, only subclassed. Used to define a common base with some methods left unimplemented, forcing derived classes to implement them. Typical use: Shape as abstract, Circle and Square as concrete subclasses.
+' interface — a pure contract, no implementation at all. Any class that "implements" it must provide all its methods. Difference from abstract class: a class can implement multiple interfaces but only inherit one abstract class. Typical use: Printable, Serializable, Comparable.
+' enum — a fixed set of named constants. Used when a variable can only take one of a predefined set of values. Typical use: Color { RED, GREEN, BLUE }, Direction { NORTH, SOUTH, EAST, WEST }.
+' annotation — metadata attached to classes or methods, doesn't affect behavior directly. Mostly a Java concept (@Override, @Deprecated). Rarely drawn in UML unless documenting a Java codebase specifically.
+' entity — represents a persistent data object, typically mapped to a database table. Common in JPA/Hibernate Java diagrams. Similar to a class but semantically means "this gets stored in a database".
+' exception — a class that represents an error condition. Syntactic sugar in PlantUML — functionally identical to a class but visually signals it's part of the error handling system.
+' protocol — a Swift/Objective-C concept, essentially equivalent to interface. Used when documenting iOS/macOS codebases to be semantically precise about the language construct.
+' struct — a value type (as opposed to a reference type). In C++ and Swift, structs are copied on assignment instead of passed by reference. Signals that instances are lightweight value objects, not heap-allocated objects.
+
+
+
+'class MyClass {
+'  -int id
+'  +String name
+'  +void save()
+'  +String toString()
+'}
+'
+'abstract class MyAbstract {
+'  #String type
+'  {abstract} +void execute()
+'  +String getType()
+'}
+'
+'interface MyInterface {
+'  +void connect()
+'  +void disconnect()
+'  +bool isConnected()
+'}
+'
+'enum MyEnum {
+'  RED
+'  GREEN
+'  BLUE
+'  +String toHex()
+'}
+'annotation MyAnnotation
+'
+'entity MyEntity {
+'  +int id
+'  +String name
+'  +DateTime createdAt
+'  +void persist()
+'}
+'
+'
+
+class MyClass
+abstract class MyAbstract
+interface MyInterface
+enum MyEnum
+annotation MyAnnotation
+entity MyEntity
+
+@enduml
+
+@startuml packages
+
+left to right direction
+
+'packages are used to group related classes together, providing a way to
+'organize and modularize the design. They can represent different layers of an
+'application (e.g., controller, service, repository) or different functional
+'areas (e.g., user management, product management).
+'
+package "controller" {
+  class UserController
+  class ProductController
+}
+
+package "producer-consumer" {
+   class Producer
+   class Consumer
+}
+
+
+@enduml
+
+@startuml flowchart
+start
+:Step one;
+if (Decision?) then (yes)
+  :Path A;
+else (no)
+  :Path B;
+endif
+:Final step;
+stop
+@enduml
+
+@startuml basic_state_machine
+[*] --> StateA          ' [*] = initial/final pseudo-state
+StateA --> StateB : event / action
+StateB --> StateC : condition
+StateC --> [*]          ' back to [*] = end
+@enduml
+
+@startuml semaphore_state_machine
+skinparam style strictuml
+
+' Force state diagram mode
+hide empty description
+[*] --> Red
+
+state Red : entry / stop traffic
+
+state Green : entry / allow traffic
+
+state Yellow : entry / slow down
+
+state Flashing : entry / flash amber
+
+Red    --> Green   : timer / go
+Green  --> Yellow  : timer / warn
+Yellow --> Red     : timer / stop
+
+Red    --> Flashing : power_fail
+Flashing --> Red    : restore
+
+Yellow --> [*] : shutdown
+@enduml
+
+@startuml text_editor_state_machine
+hide empty description
+
+state "Waiting for input" as W #lightblue {
+ ' 1. Lifecycle actions
+'  entry / show cursor
+'  exit  / hide cursor
+'  do    / blink animation
+'
+'  ' 2. Internal transition (no state change)
+'  timeout / log warning
+'
+'  ' 3. Sub-states
+  [*] --> Idle
+  Idle --> Typing : keypress
+  Typing --> Idle  : backspace_all
+  note  left of Idle : "user must type something" 
+'
+'  ' 4. Concurrent regions
+  --
+  [*] --> SpellCheck
+  SpellCheck --> SpellCheck : word_typed
+'
+'  ' 5. History (resume last substate on re-entry)
+'  [H] --> Idle
+'
+'  ' 6. Note
+}
+'
+'[*]  --> W
+'W    --> Submitted : submit [form_valid]
+'W    --> [*]        : cancel
+@enduml

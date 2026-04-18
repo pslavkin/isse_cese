@@ -1,0 +1,495 @@
+@startuml basic_states
+
+[*]-->rojo
+state rojo
+state amarillo
+state verde
+
+@enduml
+
+
+/'
+====================================================================
+TUTORIAL: CARACTERÍSTICAS DE UN ESTADO EN PLANTUML
+====================================================================
+Este diagrama resume todas las propiedades, comportamientos y 
+opciones de diseño que puedes aplicarle a un único estado.
+'/
+
+@startuml
+title Anatomía y Características de un Estado en PlantUML
+
+' Configuración de estilo global (opcional)
+skinparam state {
+    BackgroundColor White
+    BorderColor Black
+    ArrowColor DimGray
+}
+
+' 1. EL ESTADO INICIAL
+[*] --> EstadoCompleto : iniciar()
+
+/' 
+====================================================================
+DEFINICIÓN DEL ESTADO COMPLETO
+====================================================================
+- "Nombre Largo" as Alias : Permite usar un nombre corto en el código.
+- <<estereotipo>> : Metadato de UML para categorizar el estado.
+- #Color : Define el color de fondo específico del estado.
+'/
+state "Estado Completo" as EstadoCompleto <<mi_estereotipo>> #LightYellow {
+    
+    /' 
+    -------------------------------------------------------
+    A. ACCIONES ESTÁNDAR DE UML (entry, exit, do)
+    Usamos la sintaxis 'Alias : trigger / acción'
+    -------------------------------------------------------
+    '/
+    EstadoCompleto : entry / inicializarRecursos()
+    EstadoCompleto : exit / liberarMemoria()
+    EstadoCompleto : do / parpadearLedContinuamente()
+    /' 
+    -------------------------------------------------------
+    B. TRANSICIONES INTERNAS
+    Reaccionan a un evento pero NO salen del estado 
+    (por lo tanto, NO disparan 'entry' ni 'exit').
+    Sintaxis: 'Evento [Guarda] / Acción'
+    -------------------------------------------------------
+    '/
+    EstadoCompleto : botonPresionado [sistema_ok] / emitirPitido()
+    EstadoCompleto : datosRecibidos / guardarEnBuffer()
+    
+    /' 
+    -------------------------------------------------------
+    B. TRANSICIÓN HACIA SÍ MISMO (Self-Transition)
+    A diferencia de la transición interna, una flecha que sale y 
+    vuelve a apuntar al mismo estado SÍ provoca que se ejecuten 
+    las acciones de 'exit' y luego las de 'entry'.
+    '/
+    EstadoCompleto -right-> EstadoCompleto : eventoReinicio [contador > 5] / resetear()
+
+/' 
+    -------------------------------------------------------
+    C. FORMATEO DE TEXTO Y SEPARADORES
+    Puedes usar Markdown/HTML básico dentro del estado
+    -------------------------------------------------------
+    '/
+    EstadoCompleto : ----
+    EstadoCompleto : = Información Extra
+    EstadoCompleto : Soporta texto en **negrita**,
+    EstadoCompleto : texto en //cursiva// y con
+    EstadoCompleto : <color:red>diferentes colores</color>.
+}
+
+/' 
+====================================================================
+NOTAS ASOCIADAS AL ESTADO
+====================================================================
+Las notas se pueden anclar arriba (top), abajo (bottom), 
+izquierda (left) o derecha (right) de un estado.
+'/
+note left of EstadoCompleto
+  **Diferencia clave:**
+  --
+  * Una //transición interna// procesa 
+  el evento sin reiniciar el estado.
+  * Una //self-transition// (la flecha
+  que da la vuelta) hace que el 
+  estado se reinicie por completo.
+end note
+
+' Transición final para cerrar el diagrama
+EstadoCompleto --> [*] : apagar()
+
+@enduml
+
+
+/'
+====================================================================
+TUTORIAL: PSEUDOESTADOS EN PLANTUML
+====================================================================
+Este diagrama ilustra todos los pseudoestados (puntos de control y 
+enrutamiento transitorios) soportados por PlantUML.
+Los pseudoestados no ejecutan acciones propias ni mantienen al 
+sistema "dentro" de ellos; solo dirigen el flujo de las transiciones.
+'/
+
+@startuml
+title Guía Completa de Pseudoestados UML en PlantUML
+
+skinparam state {
+    BackgroundColor White
+    BorderColor Black
+    ArrowColor DimGray
+}
+
+/' 
+====================================================================
+1. PSEUDOESTADO INICIAL Y FINAL ([*])
+====================================================================
+- [*] al inicio de una flecha representa el Punto de Partida (círculo negro).
+- [*] al final de una flecha representa el Punto Final (círculo con borde).
+'/
+note top of EstadoValidacion
+  **1. Inicial [*]**
+  Representa la creación
+  o el punto de partida.
+end note
+[*] --> EstadoValidacion : iniciar()
+
+
+/' 
+====================================================================
+2. CHOICE (Elección o Condición Dinámica)
+====================================================================
+- Se define usando el estereotipo <<choice>>.
+- Se dibuja como un rombo.
+- Evalúa condiciones dinámicas (Guards) en tiempo real para 
+  decidir qué camino tomar. Es el equivalente a un 'if/else'.
+'/
+state "EleccionDatos" as c1 <<choice>>
+
+EstadoValidacion --> c1 : validarDatos()
+c1 --> ForkInicio : [datos válidos]
+c1 --> Error : [datos inválidos]
+
+note left of c1
+  **2. Choice (Elección)**
+  <<choice>>
+  Bifurcación condicional.
+end note
+
+
+/' 
+====================================================================
+3. FORK Y JOIN (Paralelismo / Regiones Ortogonales)
+====================================================================
+- <<fork>> (Bifurcación): Divide un flujo en múltiples flujos paralelos.
+- <<join>> (Unión): Espera a que múltiples flujos terminen para continuar.
+- Se dibujan como barras gruesas horizontales o verticales.
+'/
+state "IniciarParalelo" as ForkInicio <<fork>>
+state "Sincronizar" as JoinFin <<join>>
+
+note right of ForkInicio
+  **3. Fork (Bifurcación)**
+  <<fork>>
+  Lanza múltiples tareas
+  al mismo tiempo.
+end note
+
+' El Fork divide el camino en dos procesos simultáneos
+ForkInicio --> TareaRed
+ForkInicio --> TareaUI
+
+' Ambas tareas deben llegar al Join para poder continuar
+TareaRed --> JoinFin : fin descarga
+TareaUI --> JoinFin : fin renderizado
+
+note right of JoinFin
+  **4. Join (Unión)**
+  <<join>>
+  Espera a que todos los 
+  hilos paralelos lleguen.
+end note
+
+
+/' 
+====================================================================
+4. HISTORY (Historial Superficial y Profundo)
+====================================================================
+- Permite recordar en qué sub-estado se quedó un estado compuesto 
+  cuando fue interrumpido.
+- [H]  = Historial Superficial (Shallow): Solo recuerda el nivel actual.
+-[H*] = Historial Profundo (Deep): Recuerda todos los sub-niveles.
+'/
+state "ProcesoComplejo" as ProcesoComplejo {
+    state "Paso 1" as P1
+    state "Paso 2" as P2
+    [*] --> P1
+    P1 --> P2
+}
+
+JoinFin --> ProcesoComplejo : continuar()
+
+state "ManejadorInterrupciones" as Interrupcion
+
+ProcesoComplejo --> Interrupcion : eventoCritico (Pausa)
+Interrupcion --> ProcesoComplejo[H] : reanudar()
+
+note right of Interrupcion
+  **5. Historial [H] / [H*]**
+  La transición hacia [H] hace que el
+  sistema vuelva exactamente al paso 
+  (P1 o P2) donde fue interrumpido.
+end note
+
+
+/' 
+====================================================================
+5. JUNCTION (Punto de Unión Estático)
+====================================================================
+- Se define con <<junction>>.
+- Se dibuja como un círculo negro relleno (similar al inicial).
+- Se usa para fusionar múltiples transiciones en un solo camino 
+  simplificando visualmente el diagrama, o para evaluar ramas estáticas.
+'/
+state "PuntoUnion" as j1 <<junction>>
+
+ProcesoComplejo --> j1 : finalizar()
+Error --> j1 : abortar()
+
+note left of j1
+  **6. Junction (Unión)**
+  <<junction>>
+  Agrupa varias flechas
+  en una sola ruta final.
+end note
+
+' Finalmente, nos dirigimos al pseudoestado Final
+j1 --> [*] : terminarInstancia()
+
+note bottom of j1
+  **7. Final [*]**
+  Fin del ciclo de vida.
+end note
+
+@enduml
+
+
+
+@startuml
+title Diferencia de Comportamiento: [H] vs [H*]
+
+skinparam stateBackgroundColor White
+
+state "JuegoEnProgreso" as Juego {
+    ' Definimos los pseudoestados de historial dentro del estado padre
+    state "[H]" as H_Shallow
+    state "[H*]" as H_Deep
+    [*] --> Mundo_1
+    state Mundo_1 {
+        [*] --> Nivel_1_1
+        state Nivel_1_1
+        state Nivel_1_2
+        Nivel_1_1 --> Nivel_1_2
+    }
+    state Mundo_2 {
+        [*] --> Nivel_2_1 : (Inicio por defecto)
+        state Nivel_2_1
+        state Nivel_2_2
+        Nivel_2_1 --> Nivel_2_2
+    }
+    Mundo_1 --> Mundo_2 : avanzar
+}
+
+state "MenuDePausa" as Pausa
+
+' Estando en el Nivel_2_2, el usuario presiona PAUSA
+Juego --> Pausa : presionar_pausa
+
+' OPCIÓN A: Reanudar con Historial Superficial
+Pausa --> H_Shallow : reanudar_shallow
+note on link
+  **[H] Vuelve a Mundo_2 (1er nivel).**
+  Pero dentro de Mundo_2, olvida el nivel
+  y arranca desde [*] (Nivel_2_1).
+end note
+
+' OPCIÓN B: Reanudar con Historial Profundo
+Pausa --> H_Deep : reanudar_deep
+note on link
+  **[H*] Vuelve a Mundo_2 -> Nivel_2_2.**
+  Recuerda exactamente el sub-estado
+  más interno donde estabas.
+end note
+
+@enduml
+
+
+/'
+====================================================================
+EJEMPLO BÁSICO: SUBMÁQUINA QUE SUMA
+====================================================================
+Demostración minimalista de cómo definir una máquina de estados
+una vez y reutilizarla varias veces.
+'/
+
+@startuml
+title Ejemplo Minimalista de Submáquina (Sumador)
+
+skinparam stateBackgroundColor White
+
+/' 
+====================================================================
+1. EL MOLDE (LA SUBMÁQUINA)
+====================================================================
+Define una cajita que simplemente recibe datos, suma y termina.
+'/
+!definelong Submaquina_Sumar(nombre_instancia)
+  state "nombre_instancia (Proceso de Suma)" as nombre_instancia #LightGreen {
+    
+    [*] --> IngresandoValores
+    IngresandoValores --> Calculando : operar()
+    Calculando --> [*] : retornar_resultado
+    
+  }
+!enddefinelong
+
+/' 
+====================================================================
+2. EL FLUJO PRINCIPAL (Donde la usamos 2 veces)
+====================================================================
+'/
+
+[*] --> Calculo_A
+
+' --- PRIMERA VEZ QUE USAMOS EL SUMADOR ---
+state "Operación A (x + y)" as Calculo_A {
+    [*] --> PrepararVariables_A
+    
+    ' Instanciamos la submáquina dándole el nombre "Suma_A"
+    Submaquina_Sumar(Suma_A)
+    
+    PrepararVariables_A --> Suma_A : iniciar_suma
+    Suma_A --> GuardarResultado_A :[Suma terminada]
+}
+
+Calculo_A --> Calculo_B : siguiente_paso
+
+' --- SEGUNDA VEZ QUE USAMOS EL SUMADOR ---
+state "Operación B (w + z)" as Calculo_B {
+    [*] --> PrepararVariables_B
+    
+    ' Volvemos a instanciar la misma submáquina, ahora se llama "Suma_B"
+    Submaquina_Sumar(Suma_B)
+    
+    PrepararVariables_B --> Suma_B : iniciar_suma
+    Suma_B --> GuardarResultado_B : [Suma terminada]
+}
+
+Calculo_B --> [*] : Fin del programa
+
+@enduml
+
+@startuml
+title 1. Comportamiento Simple (Sin historia)\nEjemplo: Calculadora de Impuestos
+
+skinparam ActivityBackgroundColor #D4EDDA
+skinparam ActivityBorderColor #28A745
+
+start
+
+note right
+  **Sin historia:**
+  El resultado depende SOLO de
+  los datos que ingresan en este momento.
+end note
+
+:Ingresar Salario Base;
+:Ingresar Porcentaje de Impuesto;
+
+:Calcular: Salario * (Porcentaje / 100);
+
+:Mostrar Impuesto a Pagar;
+
+stop
+@enduml
+
+@startuml
+title 2. Comportamiento Dependiente de Estados (Historia discreta)\nEjemplo: Molinete de Metro
+
+skinparam StateBackgroundColor #FFF3CD
+skinparam StateBorderColor #FFC107
+skinparam ArrowColor DimGray
+
+note top of Bloqueado
+  **Historia Discreta:**
+  Si alguien empuja, la respuesta depende de
+  si antes se insertó una moneda o no.
+end note
+
+[*] --> Bloqueado : inicio del día
+
+state Bloqueado {
+  Bloqueado : do / mantener frenos activados
+}
+
+state Desbloqueado {
+  Desbloqueado : do / liberar frenos
+}
+
+Bloqueado --> Desbloqueado : insertar_moneda [moneda == valida]
+Desbloqueado --> Bloqueado : persona_pasa (empuja barrera)
+
+' Si intentan pasar sin pagar
+Bloqueado --> Bloqueado : empujar_barrera / sonar_alarma()
+
+@enduml
+
+
+
+@startuml
+title 3. Comportamiento Continuo: ¿Dónde está la "Historia"?
+skinparam padding 5
+
+' Estilos generales (Azul para el flujo continuo presente)
+skinparam ActivityBackgroundColor #CCE5FF
+skinparam ActivityBorderColor #004085
+
+' Estilos específicos para resaltar la HISTORIA (Naranja)
+skinparam ActivityBackgroundColor<<Historia>> #FFE5B4
+skinparam ActivityBorderColor<<Historia>> #FF8C00
+
+start
+
+' Antes de empezar, la memoria está vacía
+:Inicializar MemoriaAcumulada = 0\nInicializar ErrorPasado = 0;
+
+repeat : **Instante de Tiempo 't'**\n(Ocurre infinitas veces por segundo);
+
+  :Leer Temperatura Actual;
+  :Calcular Error Actual\n(Error = Deseado - Actual);
+  
+  /' ========================================================
+     PUNTO 1: CONSULTANDO LA HISTORIA A LARGO PLAZO
+     ======================================================== '/
+  :Sumar Error a la Memoria\n(MemoriaAcumulada = MemoriaAcumulada + Error) <<Historia>>;
+  note right
+    **1. Historia Acumulada (Integral)**
+    Aquí se toma en cuenta TODO el 
+    pasado continuo. Si el error persiste 
+    en el tiempo, esta suma crece, 
+    forzando al sistema a reaccionar.
+  end note
+
+  /' ========================================================
+     PUNTO 2: CONSULTANDO LA HISTORIA INMEDIATA
+     ======================================================== '/
+  :Calcular Tendencia\n(Cambio = Error - ErrorPasado) <<Historia>>;
+  note left
+    **2. Historia Inmediata (Derivada)**
+    Compara el presente con el
+    instante pasado inmediato para 
+    saber si estamos mejorando o empeorando.
+  end note
+
+  :Calcular Potencia de la Válvula\n(Usando Error actual + MemoriaAcumulada + Tendencia);
+  
+  :Aplicar energía al sistema;
+
+  /' ========================================================
+     PUNTO 3: GUARDANDO LA HISTORIA PARA EL FUTURO
+     ======================================================== '/
+  :Actualizar Registro\n(ErrorPasado = Error actual) <<Historia>>;
+  note right
+    **3. Actualizando la historia**
+    Lo que ahora es "presente" se 
+    guarda para que sea la historia 
+    en la próxima fracción de segundo.
+  end note
+
+repeat while (Sistema Encendido?) is (Sí)
+
+stop
+@enduml
